@@ -54,7 +54,7 @@ def test_unknown_field_lists_available_fields() -> None:
 
         __check__(cond=M.This["sise"] < 3, message="typo")
 
-    diags = M.type_check_diagnostics()
+    diags = M.type_check_diagnostics().diagnostics
     assert [d.code for d in diags] == [DiagCode.UNKNOWN_FIELD]
     assert "available fields: name, size" in diags[0].message
     assert "lt" in diags[0].notes[0]
@@ -74,7 +74,7 @@ def test_types_are_per_occurrence() -> None:
 
         __check__(cond=shared, message="too many")
 
-    diags = M.type_check_diagnostics()
+    diags = M.type_check_diagnostics().diagnostics
     assert len(diags) == 1
     assert diags[0].code == DiagCode.ARG_CLASS
     assert diags[0].record.name == "Stringy"
@@ -114,7 +114,7 @@ def test_invalid_case_tag_lists_tags() -> None:
         __variant__(Circle, Square)
         __check__(cond=M.This["data"]._Case.is_case("Triangle"), message="no triangles")
 
-    diags = M.type_check_diagnostics()
+    diags = M.type_check_diagnostics().diagnostics
     assert [d.code for d in diags] == [DiagCode.INVALID_CASE_TAG]
     assert "expected one of: Circle, Square" in diags[0].message
 
@@ -145,6 +145,6 @@ def test_unreachable_type_case() -> None:
             message="no others",
         )
 
-    diags = M.type_check_diagnostics()
+    diags = M.type_check_diagnostics().diagnostics
     assert [d.code for d in diags] == [DiagCode.UNREACHABLE_TYPE_CASE]
     assert "Leaf" in diags[0].message

@@ -71,14 +71,12 @@ def test_message_formats_paths_of_duplicates() -> None:
         __check__(
             id="unique",
             cond=op_all(
-                op_group_by(
-                    M.This["items"], "item", M.Iter("item")["id"]
-                )._Map.values(),
+                op_group_by(M.This["items"], "item", M.Iter("item")["id"])._Map.values(),
                 "group",
                 M.Iter("group")._List.size() <= 1,
             ),
             message=op_format(
-                "duplicate ids at %s",
+                "duplicate ids at {}",
                 op_map(
                     op_filter(
                         op_group_by(
@@ -97,8 +95,12 @@ def test_message_formats_paths_of_duplicates() -> None:
 
     value = M.decode(Bag, {"items": [{"id": "a"}, {"id": "b"}, {"id": "a"}]})
     failures = M.validate(Bag, value)
+    # The formatting uses `""` to wrap the messages because the format
+    # operation received the nested list of strings. If quote is not necessary,
+    # the formatting should assemble the string as required by interpolating
+    # individual list elements.
     assert [f.message for f in failures] == [
-        "duplicate ids at [[$.items[0], $.items[2]]]"
+        'duplicate ids at [["$.items[0]", "$.items[2]"]]'
     ]
 
 

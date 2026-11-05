@@ -422,7 +422,7 @@ class DslMeta(type):
                             doc=value.doc,
                             default=value.default,
                             check=None if value.check is None else value.check.node,
-                            message=value.message.node,
+                            message=None if value.message is None else value.message.node,
                             loc=value.loc,
                         )
                     )
@@ -543,11 +543,30 @@ class DslModel:
         message: Optional[Expr | str] = None,
         # Use `Any` to make type checkers work
     ) -> Any:
+
+        match message:
+            case None if check is not None:
+                raise ValueError(
+                    "Empty message with non-empty check, error message is mandatory"
+                )
+
+            case None:
+                conv_message = None
+
+            case str():
+                conv_message = Expr(to_node(message))
+
+            case Expr():
+                conv_message = message
+
+            case _:
+                raise TypeError(f"Unexpected message type: {type(message)}")
+
         return FieldSpec(
             doc=doc,
             default=default,
             check=check,
-            message=message if isinstance(message, Expr) else Expr(to_node(message)),
+            message=conv_message,
             loc=current_loc(),
         )
 
@@ -617,7 +636,7 @@ class DslModel:
         return self.finalize().model_dump(mode="json")
 
     def type_of(self, target: Any) -> TypeRef:
-        """
+        """l
         Model type of a declaration class or of any annotation-like type expression.
 
         This function returns a static type of the expression or unwraps the stored

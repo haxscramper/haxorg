@@ -320,23 +320,34 @@ class ASTBuilder(base.AstbuilderBase):
         Line: bool = True,
         LineParameters: bool = True,
     ) -> BlockId:
-        result = self.line([func])
+        head_call = list()
+        head_call.append(func)
+
         if Params is not None:
-            self.b.add_at(result, self.string("<"))
-            self.b.add_at(
-                result,
+            head_call.append(self.string("<"))
+            head_call.append(
                 self.csv(
                     [self.Type(t) for t in Params],
                     isLine=LineParameters,
                 ),
             )
-            self.b.add_at(result, self.string(">"))
+            head_call.append(self.string(">"))
 
-        self.b.add_at(result, self.string("("))
-        self.b.add_at(result, self.csv(Args, Line))
-        self.b.add_at(result, self.string(");" if Stmt else ")"))
+        head_call.append(self.string("("))
+        close = self.string(");" if Stmt else ")")
+        if Line:
+            head_call.append(self.csv(Args, Line, isTrailing=True))
+            head_call.append(close)
+            return self.line(head_call)
 
-        return result
+        else:
+            return self.stack(
+                [
+                    self.line(head_call),
+                    self.indent(2, self.csv(Args, Line, isTrailing=True)),
+                    close,
+                ]
+            )
 
     def CallStatic(
         self,
@@ -1143,7 +1154,9 @@ class ASTBuilder(base.AstbuilderBase):
             self.b.add_at(head, self.b.text(" }"))
 
         else:
-            head = self.stack([head, self.stack(p.Body), self.b.text("}")])
+            head = self.stack(
+                [head, self.indent(2, self.stack(p.Body)), self.b.text("}")]
+            )
 
         return head
 

@@ -147,7 +147,7 @@ class AstbuilderBase:
             return self.stack(*args)
 
     def indent(self, indent: int, *args: BlockId) -> BlockId:
-        return self.b.indent(indent, self.stack(args))
+        return self.b.indent(indent, self.stack(list(args)))
 
     def init_list(
         self, elements: List[BlockId], isLine: bool = True, isTrailing: bool = True

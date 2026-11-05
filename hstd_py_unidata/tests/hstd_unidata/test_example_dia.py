@@ -108,7 +108,7 @@ class DiaEdge(DiaElement, M.Class):
         id="no-self-loop",
         cond=M.This["source"] != M.This["target"],
         message=op_format(
-            "edge %s connects node %s to itself", M.This["id"], M.This["source"]
+            "edge {} connects node {} to itself", M.This["id"], M.This["source"]
         ),
     )
 
@@ -130,7 +130,7 @@ class DiaCluster(DiaElement, M.Class):
             ),
         ),
         message=op_format(
-            "edges of cluster %s must connect nodes nested in the cluster", M.This["id"]
+            "edges of cluster {} must connect nodes nested in the cluster", M.This["id"]
         ),
     )
 
@@ -158,9 +158,9 @@ class DiaCluster(DiaElement, M.Class):
         message=op_cond(
             (
                 M.This["nodes"]._List.size() == 0,
-                op_format("edges of kiwi cluster %s use graphviz", M.This["id"]),
+                op_format("edges of kiwi cluster {} use graphviz", M.This["id"]),
             ),
-            default=op_format("elements of kiwi cluster %s use graphviz", M.This["id"]),
+            default=op_format("elements of kiwi cluster {} use graphviz", M.This["id"]),
         ),
     )
 
@@ -173,7 +173,7 @@ class DiaCluster(DiaElement, M.Class):
             op_all(M.This["edges"], "edge", ~M.Iter("edge")["weight"]._Opt.has_value()),
         ),
         message=op_format(
-            "edge weights in cluster %s are ignored by the circo engine", M.This["id"]
+            "edge weights in cluster {} are ignored by the circo engine", M.This["id"]
         ),
     )
 
@@ -196,7 +196,7 @@ class Diagram(M.Class):
             "node_ids",
             ids_of(M.This["root"], "DiaNode", "node"),
             op_format(
-                "edges with unknown endpoints at %s",
+                "edges with unknown endpoints at {}",
                 op_map(
                     op_filter(
                         elements_of(M.This["root"], "DiaEdge", "edge"),
@@ -222,7 +222,7 @@ class Diagram(M.Class):
             M.Iter("group")._List.size() <= 1,
         ),
         message=op_format(
-            "element ids are reused at %s",
+            "element ids are reused at {}",
             op_map(
                 op_filter(
                     op_group_by(

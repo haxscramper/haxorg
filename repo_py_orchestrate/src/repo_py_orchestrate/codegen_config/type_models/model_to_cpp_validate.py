@@ -966,6 +966,28 @@ class CheckGen:
         this_expr: BlockId,
         bindings: dict[str, BlockId],
     ) -> ExpressionEvaluation:
+
+        # def _gen_type_cond(type_case: ExprNode) -> BlockId:
+        #     return self._expression_call(
+        #         "type_case",
+        #         args=[
+        #             self._expression_as_iife(type_case.args[0], this_expr, bindings),
+        #         ],
+        #     )
+
+        # return self._expression_local(
+        #     self._op_call(
+        #         expr.op,
+        #         args=[
+        #             self._expr_context_gen(expr),
+        #             self._expression_as_iife(expr.args[0], this_expr, bindings),
+        #         ]
+        #         + [_gen_type_cond(arg) for arg in expr.args[1:]],
+        #         params=[self._expression_result_type(expr)],
+        #         Line=False,
+        #     )
+        # )
+
         subject = self._gen_expression_eval(
             expr.args[0],
             this_expr,

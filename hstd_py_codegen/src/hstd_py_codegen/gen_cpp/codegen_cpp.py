@@ -447,7 +447,7 @@ class GenConverter:
                 decls.append(self.convertNamespace(entry))
 
             case _:
-                raise ValueError("Unexpected kind '%s'" % type(entry))
+                raise ValueError(f"Unexpected kind '{type(entry)}'")
 
         return decls
 

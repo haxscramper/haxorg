@@ -569,8 +569,7 @@ class GenGraph:
 
             if 1 < len(group):
                 log("refl.cli.read").info(
-                    "Merging strongly connected files %s"
-                    % (
+                    "Merging strongly connected files {}".format(
                         ", ".join(
                             [
                                 f"[green]{g.original.name}[/green]"
