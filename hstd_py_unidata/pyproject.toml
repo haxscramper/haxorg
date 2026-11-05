@@ -1,0 +1,35 @@
+[project]
+name = "hstd_py_unidata"
+version = "0.1.0"
+requires-python = ">=3.12"
+dependencies = [
+    "beartype",
+    "loguru",
+    "plumbum",
+    "pydantic",
+    "frozendict",
+    "hstd_py_lib",
+]
+
+[dependency-groups]
+dev = [
+    "pytest",
+    "pytest-xdist",
+    "pytest-reportlog",
+]
+
+[build-system]
+requires = ["hatchling>=1.27"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = [
+  "src/hstd_py_unidata",
+]
+
+[tool.hatch.build.targets.sdist]
+include = [
+  "/src",
+  "/tests",
+  "/pyproject.toml",
+]

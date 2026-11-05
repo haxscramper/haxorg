@@ -1,0 +1,20 @@
+#pragma once
+
+#include <hstd_cpp_lib/stdlib/formatting/ColText.hpp>
+#include <hstd_cpp_lib/stdlib/serde/Json.hpp>
+#include <hstd_cpp_lib/stdlib/serde/JsonUse.hpp>
+
+namespace hstd {
+
+json to_formatting_json(Vec<ColRune> const& runes);
+
+template <>
+struct JsonSerde<hstd::ColText> {
+    static json to_json(hstd::ColText const& it) { return hstd::to_formatting_json(it); }
+    static hstd::ColText from_json(json const& j) {
+        throw hstd::logic_unreachable_error::init(
+            "Conversion from JSON to colored text is not supported");
+    }
+};
+
+} // namespace hstd

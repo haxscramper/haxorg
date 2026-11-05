@@ -1,0 +1,28 @@
+@PACKAGE_INIT@
+
+include(CMakeFindDependencyMacro)
+
+find_dependency(
+    hstd_cpp_lib
+    CONFIG
+)
+find_dependency(
+    Protobuf
+    CONFIG
+)
+find_dependency(
+    kiwi
+    CONFIG
+)
+find_dependency(
+    graphviz
+    CONFIG
+)
+find_dependency(
+    adaptagrams
+    CONFIG
+)
+
+include("${CMAKE_CURRENT_LIST_DIR}/hstd_cpp_diagram_lib-targets.cmake")
+
+check_required_components(hstd_cpp_diagram_lib)

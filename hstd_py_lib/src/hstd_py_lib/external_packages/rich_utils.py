@@ -1,0 +1,51 @@
+from beartype import beartype
+from beartype.typing import Any
+from rich.console import Console
+from rich.pretty import pprint
+from rich.tree import Tree
+
+
+@beartype
+def use_colored_repr() -> bool:
+    import sys
+
+    return sys.stdout.isatty()
+
+
+@beartype
+def render_rich(it: Any, color: bool = use_colored_repr(), width: int = 2500) -> str:
+    console = Console(force_terminal=color, width=width)
+    with console.capture() as capture:
+        console.print(it)
+
+    return capture.get()
+
+
+@beartype
+def render_rich_pprint(
+    obj: Any,
+    width: int = 150,
+    color: bool = use_colored_repr(),
+    max_string: int | None = None,
+) -> str:
+
+    console = Console(record=True, width=width, force_terminal=color)
+    with console.capture() as capture:
+        pprint(
+            obj,
+            console=console,
+            max_length=width,
+            max_string=max_string,
+            indent_guides=False,
+        )
+    return capture.get()
+
+
+@beartype
+def render_debug(value: Any, color: bool = False, width: int = 200) -> str:
+    return render_rich_pprint(value, width=width, color=color)
+
+
+class IndentedTree(Tree):
+    TREE_GUIDES = [("    ", "    ", "    ", "    ")] * 3
+    ASCII_GUIDES = ("    ", "    ", "    ", "    ")

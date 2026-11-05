@@ -1,0 +1,92 @@
+#include <fstream>
+#include <hstd_cpp_lib/stdlib/Filesystem.hpp>
+#include <hstd_cpp_lib/stdlib/formatting/Formatter.hpp>
+#include <sstream>
+
+using namespace hstd;
+
+void hstd::writeFile(
+    fs::path const&    target,
+    std::string const& content,
+    bool               createParentDir) {
+    if (createParentDir) { hstd::createDirectory(target.parent_path(), true, true); }
+
+    std::ofstream file{target.native()};
+    if (file.is_open()) {
+        file << content;
+    } else {
+        throw FilesystemError::init("Could not write to file '" + target.native() + "'");
+    }
+}
+
+std::string hstd::readFile(fs::path const& target) {
+    std::ifstream in{target.native()};
+    if (in.is_open()) {
+        std::stringstream result;
+        result << in.rdbuf();
+        return result.str();
+    } else {
+        throw FilesystemError::init("Could not open file '" + target.native() + "'");
+    }
+}
+
+void hstd::writeFileOrStdout(
+    fs::path const&    target,
+    std::string const& content,
+    bool               useFile,
+    bool               useStdoutStream) {
+    if (useFile) {
+        writeFile(target, content);
+
+    } else {
+        std::cout << content;
+    }
+}
+
+void hstd::writeDebugFile(
+    std::string const& content,
+    std::string const& extension,
+    bool               writeLog,
+    std::string const& stem_suffix,
+    int                line,
+    char const*        function,
+    char const*        file) {
+    auto        filename  = fs::path{file}.stem();
+    std::string full_path = hstd::fmt(
+        "/tmp/{}_{}{}.{}", filename, function, stem_suffix, extension);
+
+    writeFile(full_path, content);
+}
+
+void hstd::createDirectory(fs::path const& target, bool parents, bool existsOk) {
+    if (target.native().empty()) {
+        throw FilesystemError::init(fmt("Cannot create directory, target is empty"));
+    }
+
+    if (fs::is_regular_file(target)) {
+        throw FilesystemError::init(
+            fmt("Cannot create directory {} -- the file with this name "
+                "already exists",
+                target));
+    }
+
+    if (fs::is_directory(target) && !existsOk) {
+        throw FilesystemError::init(
+            fmt("Cannot create directory {} -- the path already exists", target));
+    }
+
+    if (!fs::is_directory(target.parent_path()) && !parents) {
+        throw FilesystemError::init(
+            fmt("Cannot create directory {} -- parent path does not exist", target));
+    }
+
+    auto aux = [&](this auto&& self, fs::path const& target) -> void {
+        // apparently `/` root directory has parent path according to this
+        // code, so the `!=` thing is the only one that worked.
+        if (target.parent_path() != target) {
+            self(target.parent_path());
+            if (fs::is_directory(target.parent_path())) { fs::create_directory(target); }
+        }
+    };
+    aux(target);
+}
