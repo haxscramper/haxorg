@@ -55,7 +55,7 @@ class OrgDiagnostics(M.Class):
     __variant__(ParseTokenError, ParseError)
 
 
-def test_example_model_main():
+def test_example_model_main(stable_test_dir: Path):
     M.type_check()
 
     res = M.finalize()

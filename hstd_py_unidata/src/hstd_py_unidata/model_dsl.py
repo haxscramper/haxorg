@@ -115,7 +115,7 @@ from hstd_py_unidata.model_reduce import (
     reduce_value,
 )
 from hstd_py_unidata.model_resolve import AnnotationResolver, ModelFinalizer, NameLookup
-from hstd_py_unidata.model_souffle import TypeCheckOutput, render_program, run_type_check
+from hstd_py_unidata.model_souffle import TypeCheckOutput, run_type_check
 from hstd_py_unidata.model_value import Value, decode_json, encode_json
 
 DIRECTIVE_NAMES = ("__check__", "__variant__", "__config__")
@@ -613,7 +613,7 @@ class DslModel:
         """Raises `DslTypeError` with one diagnostic per root cause when any check expression is ill-typed."""
         diagnostics = self.type_check_diagnostics()
 
-        Path("/tmp/debug.dl").write_text(render_program(diagnostics.type_check.program))
+        # Path("/tmp/debug.dl").write_text(render_program(diagnostics.type_check.program))
 
         if diagnostics.diagnostics:
             raise DslTypeError(self.package, diagnostics.diagnostics)

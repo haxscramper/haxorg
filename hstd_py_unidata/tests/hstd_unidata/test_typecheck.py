@@ -1,4 +1,5 @@
 import shutil
+from pathlib import Path
 
 import pytest
 from beartype.typing import List
@@ -20,7 +21,7 @@ pytestmark = pytest.mark.skipif(
 )
 
 
-def test_valid_model_passes() -> None:
+def test_valid_model_passes(stable_test_dir: Path) -> None:
     M = get_dsl_model("test.tc.valid")
 
     class Item(M.Class):
@@ -45,7 +46,7 @@ def test_valid_model_passes() -> None:
     M.type_check()
 
 
-def test_unknown_field_lists_available_fields() -> None:
+def test_unknown_field_lists_available_fields(stable_test_dir: Path) -> None:
     M = get_dsl_model("test.tc.field")
 
     class Item(M.Class):
@@ -60,7 +61,7 @@ def test_unknown_field_lists_available_fields() -> None:
     assert "lt" in diags[0].notes[0]
 
 
-def test_types_are_per_occurrence() -> None:
+def test_types_are_per_occurrence(stable_test_dir: Path) -> None:
     M = get_dsl_model("test.tc.occurrence")
     shared = M.This["items"]._List.size() <= 3
 
@@ -81,7 +82,7 @@ def test_types_are_per_occurrence() -> None:
     assert "must be a list" in diags[0].message
 
 
-def test_map_preserves_result_type() -> None:
+def test_map_preserves_result_type(stable_test_dir: Path) -> None:
     M = get_dsl_model("test.tc.map")
 
     class Item(M.Class):
@@ -101,7 +102,7 @@ def test_map_preserves_result_type() -> None:
     assert "has type 'list<string>'" in err.value.diagnostics[0].message
 
 
-def test_invalid_case_tag_lists_tags() -> None:
+def test_invalid_case_tag_lists_tags(stable_test_dir: Path) -> None:
     M = get_dsl_model("test.tc.case")
 
     class Shape(M.Class):
@@ -119,7 +120,7 @@ def test_invalid_case_tag_lists_tags() -> None:
     assert "expected one of: Circle, Square" in diags[0].message
 
 
-def test_unreachable_type_case() -> None:
+def test_unreachable_type_case(stable_test_dir: Path) -> None:
     M = get_dsl_model("test.tc.reach")
 
     class Leaf(M.Class):

@@ -588,3 +588,4 @@ conanrun*
 deactivate_conanbuild*
 deactivate_conanrun*
 collector
+*.csv

@@ -221,7 +221,7 @@ def external_generators() -> Dict[ExternalT, Callable[[GenContext], Value]]:
     return {t: payload(t, data) for t, data in types}
 
 
-def test_example_model_main():
+def test_example_model_main(stable_test_dir: Path):
     diag = M.get_typed()
 
     Path("/tmp/type_check.json").write_text(

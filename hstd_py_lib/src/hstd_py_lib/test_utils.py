@@ -41,7 +41,10 @@ def get_test_dir(
 
 
 @pytest.fixture
-def stable_test_dir(request: pytest.FixtureRequest) -> Path:
+def stable_test_dir(
+    request: pytest.FixtureRequest,
+    monkeypatch: pytest.MonkeyPatch,
+) -> Path:
     import shutil
 
     final_dir = get_test_dir(request)
@@ -51,6 +54,8 @@ def stable_test_dir(request: pytest.FixtureRequest) -> Path:
         shutil.rmtree(final_dir)
 
     final_dir.mkdir(parents=True, exist_ok=True)
+
+    monkeypatch.setenv("HSTD_STABLE_TEST_DIR_PATH", str(final_dir))
 
     return final_dir
 

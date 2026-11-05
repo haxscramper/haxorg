@@ -3,6 +3,7 @@
 Clusters cannot contain themselves because instance data is a tree, so that constraint is structural."""
 
 import json
+from pathlib import Path
 
 from beartype.typing import Annotated, Dict, List, Optional, cast
 from hstd_py_unidata.model_dsl import (
@@ -305,7 +306,7 @@ def has_weighted_edge(value: Value) -> bool:
     return False
 
 
-def test_example_dia_main():
+def test_example_dia_main(stable_test_dir: Path):
     M.type_check()
     logger.info("Souffle type check passed")
     for seed in range(100):

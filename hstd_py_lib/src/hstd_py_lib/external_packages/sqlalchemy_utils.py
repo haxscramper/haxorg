@@ -4,9 +4,11 @@ from pathlib import Path
 import hstd_py_lib.json_utils as ju
 from beartype import beartype
 from beartype.typing import Any, Dict, List, Optional, Union
+from hstd_py_lib.external_packages.rich_utils import use_colored_repr
 from rich.console import Console
 from rich.table import Table
 from sqlalchemy import (
+    URL,
     Boolean,
     Column,
     DateTime,
@@ -95,7 +97,7 @@ def format_rich_table(
     engine: Engine,
     table_name: str,
     excluded_columns: List[str] = [],
-    style: bool = True,
+    style: bool = use_colored_repr(),
 ) -> Table:
     """
     Fetches a table from the database and returns a rich Table object.
@@ -144,12 +146,21 @@ def format_rich_table(
 
 
 @beartype
-def _map_engine_or_session(engine_or_session: Engine | Session) -> Engine:
-    if isinstance(engine_or_session, Session):
-        return engine_or_session.get_bind()  # type: ignore
+def _map_engine_or_session(engine_or_session: Engine | Session | Path) -> Engine:
+    match engine_or_session:
+        case Session():
+            return engine_or_session.get_bind()  # type: ignore
 
-    else:
-        return engine_or_session
+        case Engine():
+            return engine_or_session
+
+        case Path():
+            return create_engine(
+                URL.create(
+                    drivername="sqlite",
+                    database=str(engine_or_session.resolve()),
+                )
+            )
 
 
 @beartype
@@ -190,10 +201,10 @@ def get_table_names(engine: Engine, excluded_tables: List[str] = []) -> List[str
 
 @beartype
 def format_db_all(
-    engine_or_session: Union[Engine, Session],
+    engine_or_session: Union[Engine, Session, Path],
     excluded_tables: List[str] = [],
     ignored_columns: dict[str, List[str]] = {},
-    style: bool = True,
+    style: bool = use_colored_repr(),
 ) -> str:
 
     engine = _map_engine_or_session(engine_or_session)

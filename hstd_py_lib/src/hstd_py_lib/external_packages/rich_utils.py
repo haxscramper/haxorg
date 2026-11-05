@@ -6,7 +6,14 @@ from rich.tree import Tree
 
 
 @beartype
-def render_rich(it: Any, color: bool = True, width: int = 2500) -> str:
+def use_colored_repr() -> bool:
+    import sys
+
+    return sys.stdout.isatty()
+
+
+@beartype
+def render_rich(it: Any, color: bool = use_colored_repr(), width: int = 2500) -> str:
     console = Console(force_terminal=color, width=width)
     with console.capture() as capture:
         console.print(it)
@@ -18,7 +25,7 @@ def render_rich(it: Any, color: bool = True, width: int = 2500) -> str:
 def render_rich_pprint(
     obj: Any,
     width: int = 150,
-    color: bool = True,
+    color: bool = use_colored_repr(),
     max_string: int | None = None,
 ) -> str:
 

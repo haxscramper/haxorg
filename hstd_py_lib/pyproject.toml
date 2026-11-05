@@ -20,6 +20,8 @@ dependencies = [
   "betterproto2",
   "tomli_w",
   "dominate",
+  "pandas",
+  "sqlalchemy",
 ]
 
 [project.entry-points.hatch]
