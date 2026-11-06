@@ -1,20 +1,20 @@
 from __future__ import annotations
 
 import enum
-import sqlite3
 import tempfile
-from contextlib import closing
 from dataclasses import dataclass, field, replace
 from os import getenv
 from pathlib import Path
 
 from beartype import beartype
-from beartype.typing import Dict, List, Optional, Set, Tuple
 from hstd_py_lib.external_packages.rich_utils import render_rich
 from hstd_py_lib.external_packages.sqlalchemy_utils import format_db_all
 from loguru import logger
 from plumbum import local
+from sqlalchemy import insert, select
+from sqlalchemy.engine import Connection
 
+from hstd_py_unidata import model_souffle_db as db
 from hstd_py_unidata.model_index import ModelIndex
 from hstd_py_unidata.model_ir import (
     FLOAT_PRIMS,
@@ -31,13 +31,10 @@ from hstd_py_unidata.model_ir import (
     OpId,
     OptT,
     PrimKind,
-    PrimT,
     QName,
     RecordDef,
     TupleT,
-    TypeParamT,
     TypeRef,
-    UnresolvedT,
     VariantT,
     expr_tree_repr,
     numeric_join,
@@ -45,102 +42,19 @@ from hstd_py_unidata.model_ir import (
 from hstd_py_unidata.model_ops import (
     BOOL_T,
     STRING_T,
-    TYPE_CLASS_CONSTRUCTORS,
     TYPE_CLASS_DESCRIPTIONS,
     Operator,
     TypeClass,
 )
+from hstd_py_unidata.model_souffle_db_map import (
+    PRIM_CONSTRUCTORS,
+    DiagnosticDetail,
+    prepare_serde_schema,
+)
 from hstd_py_unidata.souffle_path import get_serde_library_path
 
 RULES_DIR = Path(__file__).parent
-
-PRIM_CONSTRUCTORS: Dict[PrimKind, str] = {
-    PrimKind.INT8: "PInt8",
-    PrimKind.INT16: "PInt16",
-    PrimKind.INT32: "PInt32",
-    PrimKind.INT64: "PInt64",
-    PrimKind.UINT8: "PUInt8",
-    PrimKind.UINT16: "PUInt16",
-    PrimKind.UINT32: "PUInt32",
-    PrimKind.UINT64: "PUInt64",
-    PrimKind.FLOAT32: "PFloat32",
-    PrimKind.FLOAT64: "PFloat64",
-    PrimKind.STRING: "PString",
-    PrimKind.BOOL: "PBool",
-    PrimKind.ANY: "PAny",
-    PrimKind.NONE: "PNone",
-    PrimKind.PATH: "PPath",
-}
-
-INPUT_COLUMNS: Dict[str, Tuple[str, ...]] = {
-    "input_qname": (
-        "id TEXT",
-        "name TEXT",
-        "scope TEXT",
-        "scoped INTEGER",
-    ),
-    "input_type_shape": (
-        "id INTEGER",
-        "kind TEXT",
-        "name TEXT",
-        "detail TEXT",
-        "size INTEGER",
-    ),
-    "input_type_edge": (
-        "owner INTEGER",
-        "slot INTEGER",
-        "nested INTEGER",
-    ),
-    "input_record": ("qname TEXT", "kind TEXT"),
-    "input_inherits": ("sub TEXT", "sup TEXT"),
-    "input_field": ("qname TEXT", "name TEXT", "t INTEGER"),
-    "input_variant_case": (
-        "owner TEXT",
-        "vfield TEXT",
-        "tag TEXT",
-        "case_qname TEXT",
-    ),
-    "input_variant_kind": (
-        "owner TEXT",
-        "vfield TEXT",
-        "kind_enum TEXT",
-    ),
-    "input_enum_value": ("qname TEXT", "name TEXT"),
-    "input_qname_text": ("qname TEXT", "text TEXT"),
-    "input_prim_text": ("prim TEXT", "text TEXT"),
-    "input_prim_class": ("prim TEXT", "cls TEXT"),
-    "input_class_text": ("cls TEXT", "text TEXT"),
-    "input_numeric_join": (
-        "left TEXT",
-        "right TEXT",
-        "result TEXT",
-    ),
-    "input_op_binds_elem": ("op TEXT",),
-    "input_op_binary": ("op TEXT",),
-    "input_expr": ("e INTEGER", "op TEXT"),
-    "input_expr_arity": ("e INTEGER", "arity INTEGER"),
-    "input_expr_arg": ("e INTEGER", "idx INTEGER", "arg INTEGER"),
-    "input_expr_str": ("e INTEGER", "value TEXT"),
-    "input_expr_int": ("e INTEGER", "value INTEGER"),
-    "input_expr_type_val": ("e INTEGER", "t INTEGER"),
-    "input_expr_flag": ("e INTEGER", "flag TEXT"),
-    "input_binds": ("e INTEGER", "slot INTEGER", "binder INTEGER"),
-    "input_var_ref": ("e INTEGER", "binder INTEGER"),
-    "input_this_type": ("e INTEGER", "t INTEGER"),
-    "input_root": ("e INTEGER", "expected INTEGER"),
-    "input_expr_arg_class": ("e INTEGER", "idx INTEGER", "cls TEXT"),
-    "input_expr_fixed_result": ("e INTEGER", "t INTEGER"),
-}
-
-OUTPUT_WIDTHS: Dict[str, int] = {
-    "diag": 6,
-    "untyped": 1,
-    "typed_as": 2,
-    "sq_inferred_type": 2,
-    "sq_inferred_binder_type": 3,
-    "sq_inferred_type_shape": 5,
-    "sq_inferred_type_edge": 3,
-}
+SQLITE_PROGRAM = RULES_DIR / "logic_model" / "model_sqlite.dl"
 
 
 class CheckPart(enum.StrEnum):
@@ -165,33 +79,36 @@ class Occurrence:
 
     id: int
     node: ExprNode
-    parent: Optional[int]
+    parent: int | None
     arg_index: int
     root: CheckRoot
-    binder_of: Optional[int]
+    binder_of: int | None
     """Occurrence introducing the binder referenced by this variable."""
 
 
 @beartype
 @dataclass
 class LoweredProgram:
-    database: bytes = b""
-    """Serialized SQLite database containing the normalized input relations."""
+    occurrences: dict[int, Occurrence] = field(default_factory=dict)
 
-    occurrences: Dict[int, Occurrence] = field(default_factory=dict)
+    input_database: db.InputDatabase | None = None
+    """Optional dataframe snapshot; never used to execute the checker."""
+
+    output_database: db.OutputDatabase | None = None
+    """Optional dataframe snapshot captured before temporary files are removed."""
 
 
 @beartype
 @dataclass(frozen=True)
 class DiagRow:
-    """Structured diagnostic produced by the Soufflé type checker."""
+    """Structured diagnostic whose types are decoded from the serde ADTs."""
 
     code: str
     expr: int
     arg: int
-    detail: str
-    actual: str
-    subject: str
+    detail: DiagnosticDetail
+    actual: TypeRef
+    subject: TypeRef | None
 
 
 @beartype
@@ -201,28 +118,19 @@ class TypeCheckOutput:
     """Model rewritten with inferred expression and binder types."""
 
     program: LoweredProgram
-    diags: List[DiagRow]
-    untyped: Set[int]
-    typed_as: Dict[int, str]
+    diags: list[DiagRow]
+    untyped: set[int]
+    typed_as: dict[int, str]
 
 
 @beartype
 @dataclass(frozen=True)
 class DiagnosticsResult:
-    diags: List[DiagRow]
-    """Structured diagnostics returned by Soufflé."""
-
-    untyped: Set[int]
-    """Expression occurrences without an inferred type."""
-
-    typed_as: Dict[int, str]
-    """Human-readable inferred expression types."""
-
-    inferred_types: Dict[int, TypeRef]
-    """Reconstructed expression types."""
-
-    binder_types: Dict[int, Tuple[TypeRef, ...]]
-    """Reconstructed binder types, ordered by binder slot."""
+    diags: list[DiagRow]
+    untyped: set[int]
+    typed_as: dict[int, str]
+    inferred_types: dict[int, TypeRef]
+    binder_types: dict[int, tuple[TypeRef, ...]]
 
 
 @beartype
@@ -231,188 +139,106 @@ class SouffleProtocolError(Exception):
 
 
 @beartype
-def sym(text: str) -> str:
-    return '"' + text.replace("\\", "\\\\").replace('"', '\\"') + '"'
-
-
-@beartype
-def collect_external_qnames(t: TypeRef, result: Set[QName]) -> None:
-    match t:
-        case ExternalT():
-            result.add(t.qname)
-        case ListT() | ArrayT() | OptT():
-            collect_external_qnames(t.elem, result)
-        case MapT():
-            collect_external_qnames(t.key, result)
-            collect_external_qnames(t.value, result)
-        case TupleT():
-            for elem in t.elems:
-                collect_external_qnames(elem, result)
-        case DynT():
-            collect_external_qnames(t.root, result)
-        case _:
-            pass
-
-
-@beartype
 class Lowering:
-    """Stores the finalized model and its expressions in SQLite relations."""
+    """Write the finalized model directly to typed SQLite input tables."""
 
-    def __init__(self, index: ModelIndex, table: Dict[OpId, Operator]) -> None:
+    def __init__(
+        self,
+        index: ModelIndex,
+        table: dict[OpId, Operator],
+        database: Connection,
+    ) -> None:
         self.index = index
         self.table = table
+        self.database = database
         self.program = LoweredProgram()
-        self.database: sqlite3.Connection
         self.next_expr = 0
         self.next_binder = 0
-        self.next_type = 0
-        self.binder_owner: Dict[int, int] = {}
-        self.qnames: Set[QName] = set()
-        self.types: Dict[TypeRef, int] = {}
+        self.binder_owner: dict[int, int] = {}
+        self.qnames: set[QName] = set()
+        self.types: set[TypeRef] = set()
 
-    def qname_id(self, qname: QName) -> str:
-        identity = qname.to_id()
+    def lower_qname(self, qname: QName) -> QName:
         if qname in self.qnames:
-            return identity
+            return qname
 
-        scope = ""
-        scoped = 0
         if qname.scope is not None:
-            scope = self.qname_id(qname.scope)
-            scoped = 1
+            self.lower_qname(qname.scope)
 
         self.database.execute(
-            "INSERT INTO input_qname VALUES (?, ?, ?, ?)",
-            (identity, qname.name, scope, scoped),
-        )
-        self.database.execute(
-            "INSERT INTO input_qname_text VALUES (?, ?)",
-            (identity, identity),
+            insert(db.input_qname_text),
+            {"qname": qname, "text": qname.to_id()},
         )
         self.qnames.add(qname)
-        return identity
+        return qname
 
-    def type_id(self, value: TypeRef) -> int:
+    def lower_type(self, value: TypeRef) -> TypeRef:
+        """Register display names without decomposing the stored structural ADT."""
+
         if value in self.types:
-            return self.types[value]
-
-        identity = self.next_type
-        self.next_type += 1
-
-        name = ""
-        detail = ""
-        size = 0
-        nested: Tuple[TypeRef, ...] = ()
+            return value
 
         match value:
-            case PrimT():
-                kind = "prim"
-                name = PRIM_CONSTRUCTORS[value.prim]
-            case ListT():
-                kind = "list"
-                nested = (value.elem,)
-            case ArrayT():
-                kind = "array"
-                size = value.size
-                nested = (value.elem,)
-            case MapT():
-                kind = "map"
-                nested = (value.key, value.value)
-            case OptT():
-                kind = "optional"
-                nested = (value.elem,)
-            case TupleT():
-                kind = "tuple"
-                size = len(value.elems)
-                nested = tuple(value.elems)
-            case NamedT():
-                kind = "named"
-                name = self.qname_id(value.qname)
-            case ExternalT():
-                kind = "external"
-                name = self.qname_id(value.qname)
-                detail = value.package
+            case NamedT() | ExternalT():
+                self.lower_qname(value.qname)
             case VariantT():
-                kind = "variant"
-                name = self.qname_id(value.owner)
-                detail = value.field
+                self.lower_qname(value.owner)
+            case ListT() | ArrayT() | OptT():
+                self.lower_type(value.elem)
+            case MapT():
+                self.lower_type(value.key)
+                self.lower_type(value.value)
+            case TupleT():
+                for element in value.elems:
+                    self.lower_type(element)
             case DynT():
-                kind = "dyn"
-                nested = (value.root,)
-            case TypeParamT():
-                kind = "param"
-                name = value.name
-            case UnresolvedT():
-                raise ValueError(
-                    f"Type {value.text!r} was not resolved before lowering to SQLite"
-                )
+                self.lower_type(value.root)
             case _:
-                raise TypeError(
-                    f"Cannot lower type {value!r}: unsupported type reference"
-                )
+                pass
 
-        self.database.execute(
-            "INSERT INTO input_type_shape VALUES (?, ?, ?, ?, ?)",
-            (identity, kind, name, detail, size),
-        )
-        for slot, argument in enumerate(nested):
-            argument_id = self.type_id(argument)
-            self.database.execute(
-                "INSERT INTO input_type_edge VALUES (?, ?, ?)",
-                (identity, slot, argument_id),
-            )
-
-        self.types[value] = identity
-        return identity
+        self.types.add(value)
+        return value
 
     def lower(self) -> LoweredProgram:
-        with closing(sqlite3.connect(":memory:")) as database:
-            self.database = database
+        self.lower_builtin_facts()
 
-            for relation, columns in INPUT_COLUMNS.items():
-                database.execute(f'CREATE TABLE "{relation}" ({", ".join(columns)})')
+        for record in self.index.model.records:
+            self.lower_record(record)
 
-            self.lower_builtin_facts()
-
-            for record in self.index.model.records:
-                self.lower_record(record)
-
-            for enum_def in self.index.model.enums:
-                qname = self.qname_id(enum_def.qname)
-                database.execute(
-                    "INSERT INTO input_record VALUES (?, ?)",
-                    (qname, "enum"),
-                )
-                database.executemany(
-                    "INSERT INTO input_enum_value VALUES (?, ?)",
-                    [(qname, value.name) for value in enum_def.enum_values],
+        for enum_def in self.index.model.enums:
+            qname = self.lower_qname(enum_def.qname)
+            self.database.execute(
+                insert(db.input_record),
+                {"qname": qname, "kind": "enum"},
+            )
+            for value in enum_def.enum_values:
+                self.database.execute(
+                    insert(db.input_enum_value),
+                    {"qname": qname, "name": value.name},
                 )
 
-            for record in self.index.model.records:
-                for check in record.checks:
-                    self.lower_check(
-                        record,
-                        check,
-                        NamedT(qname=record.qname),
-                    )
+        for record in self.index.model.records:
+            for check in record.checks:
+                self.lower_check(
+                    record,
+                    check,
+                    NamedT(qname=record.qname),
+                )
 
-                for field_def in record.fields:
-                    for check in field_def.checks:
-                        self.lower_check(record, check, field_def.type)
-
-            database.commit()
-            self.program.database = database.serialize()
+            for field_def in record.fields:
+                for check in field_def.checks:
+                    self.lower_check(record, check, field_def.type)
 
         return self.program
 
     def lower_builtin_facts(self) -> None:
-        for prim, constructor in PRIM_CONSTRUCTORS.items():
+        for prim in PRIM_CONSTRUCTORS:
             self.database.execute(
-                "INSERT INTO input_prim_text VALUES (?, ?)",
-                (constructor, prim.value),
+                insert(db.input_prim_text),
+                {"prim": prim, "text": prim.value},
             )
 
-            classes: List[TypeClass] = []
+            classes: list[TypeClass] = []
             if prim in INTEGER_RANGES:
                 classes = [
                     TypeClass.NUMERIC,
@@ -430,92 +256,93 @@ class Lowering:
             elif prim == PrimKind.BOOL:
                 classes = [TypeClass.BOOL]
 
-            self.database.executemany(
-                "INSERT INTO input_prim_class VALUES (?, ?)",
-                [(constructor, TYPE_CLASS_CONSTRUCTORS[cls]) for cls in classes],
-            )
+            for cls in classes:
+                self.database.execute(
+                    insert(db.input_prim_class),
+                    {"prim": prim, "cls": cls},
+                )
 
         numeric = [
             prim
             for prim in PRIM_CONSTRUCTORS
             if prim in INTEGER_RANGES or prim in FLOAT_PRIMS
         ]
-        self.database.executemany(
-            "INSERT INTO input_numeric_join VALUES (?, ?, ?)",
-            [
-                (
-                    PRIM_CONSTRUCTORS[left],
-                    PRIM_CONSTRUCTORS[right],
-                    PRIM_CONSTRUCTORS[numeric_join(left, right)],
+        for left in numeric:
+            for right in numeric:
+                self.database.execute(
+                    insert(db.input_numeric_join),
+                    {
+                        "left": left,
+                        "right": right,
+                        "result": numeric_join(left, right),
+                    },
                 )
-                for left in numeric
-                for right in numeric
-            ],
-        )
-        self.database.executemany(
-            "INSERT INTO input_class_text VALUES (?, ?)",
-            [
-                (
-                    TYPE_CLASS_CONSTRUCTORS[cls],
-                    TYPE_CLASS_DESCRIPTIONS[cls],
+
+        for cls in TypeClass:
+            self.database.execute(
+                insert(db.input_class_text),
+                {
+                    "cls": cls,
+                    "text": TYPE_CLASS_DESCRIPTIONS[cls],
+                },
+            )
+
+        for operator in self.table.values():
+            if operator.elem_binder:
+                self.database.execute(
+                    insert(db.input_op_binds_elem),
+                    {"op": operator.op_id},
                 )
-                for cls in TypeClass
-            ],
-        )
-        self.database.executemany(
-            "INSERT INTO input_op_binds_elem VALUES (?)",
-            [
-                (operator.op_id.value,)
-                for operator in self.table.values()
-                if operator.elem_binder
-            ],
-        )
-        self.database.executemany(
-            "INSERT INTO input_op_binary VALUES (?)",
-            [
-                (operator.op_id.value,)
-                for operator in self.table.values()
-                if operator.binary_operands
-            ],
-        )
+            if operator.binary_operands:
+                self.database.execute(
+                    insert(db.input_op_binary),
+                    {"op": operator.op_id},
+                )
 
     def lower_record(self, record: RecordDef) -> None:
-        qname = self.qname_id(record.qname)
+        qname = self.lower_qname(record.qname)
         self.database.execute(
-            "INSERT INTO input_record VALUES (?, ?)",
-            (qname, record.kind.value),
+            insert(db.input_record),
+            {"qname": qname, "kind": record.kind.value},
         )
 
         for base in record.bases:
             self.database.execute(
-                "INSERT INTO input_inherits VALUES (?, ?)",
-                (qname, self.qname_id(base)),
+                insert(db.input_inherits),
+                {
+                    "sub": qname,
+                    "sup": self.lower_qname(base),
+                },
             )
 
         for field_def in record.fields:
             self.database.execute(
-                "INSERT INTO input_field VALUES (?, ?, ?)",
-                (qname, field_def.name, self.type_id(field_def.type)),
+                insert(db.input_field),
+                {
+                    "qname": qname,
+                    "name": field_def.name,
+                    "t": self.lower_type(field_def.type),
+                },
             )
 
         for variant in record.variants:
             self.database.execute(
-                "INSERT INTO input_variant_kind VALUES (?, ?, ?)",
-                (
-                    qname,
-                    variant.field,
-                    self.qname_id(variant.kind_enum),
-                ),
+                insert(db.input_variant_kind),
+                {
+                    "owner": qname,
+                    "vfield": variant.field,
+                    "kind_enum": self.lower_qname(variant.kind_enum),
+                },
             )
             for case in variant.cases:
                 self.database.execute(
-                    "INSERT INTO input_variant_case VALUES (?, ?, ?, ?)",
-                    (
-                        qname,
-                        variant.field,
-                        case.tag,
-                        self.qname_id(case.case),
-                    ),
+                    insert(db.input_variant_case),
+                    {
+                        "owner": qname,
+                        "vfield": variant.field,
+                        "tag": case.tag,
+                        "case_qname": self.lower_qname(case.case),
+                    },
                 )
 
     def lower_check(
@@ -538,66 +365,69 @@ class Lowering:
                 {},
             )
             self.database.execute(
-                "INSERT INTO input_root VALUES (?, ?)",
-                (identity, self.type_id(expected)),
+                insert(db.input_root),
+                {
+                    "e": identity,
+                    "expected": self.lower_type(expected),
+                },
             )
 
     def lower_expr(
         self,
         node: ExprNode,
-        parent: Optional[int],
+        parent: int | None,
         arg_index: int,
         root: CheckRoot,
         this_type: TypeRef,
-        scope: Dict[str, int],
+        scope: dict[str, int],
     ) -> int:
         identity = self.next_expr
         self.next_expr += 1
 
         operator = self.table[node.op]
-        binder_of: Optional[int] = None
+        binder_of: int | None = None
 
         self.database.execute(
-            "INSERT INTO input_expr VALUES (?, ?)",
-            (identity, node.op.value),
+            insert(db.input_expr),
+            {"e": identity, "op": node.op},
         )
         self.database.execute(
-            "INSERT INTO input_expr_arity VALUES (?, ?)",
-            (identity, len(node.args)),
+            insert(db.input_expr_arity),
+            {"e": identity, "arity": len(node.args)},
         )
 
         if node.str_val is not None:
             self.database.execute(
-                "INSERT INTO input_expr_str VALUES (?, ?)",
-                (identity, node.str_val),
+                insert(db.input_expr_str),
+                {"e": identity, "value": node.str_val},
             )
         if node.int_val is not None:
             self.database.execute(
-                "INSERT INTO input_expr_int VALUES (?, ?)",
-                (identity, node.int_val),
+                insert(db.input_expr_int),
+                {"e": identity, "value": node.int_val},
             )
         if node.type_val is not None:
             self.database.execute(
-                "INSERT INTO input_expr_type_val VALUES (?, ?)",
-                (identity, self.type_id(node.type_val)),
+                insert(db.input_expr_type_val),
+                {"e": identity, "t": self.lower_type(node.type_val)},
             )
         if node.op == OpId.TYPE_COND and node.bool_val:
             self.database.execute(
-                "INSERT INTO input_expr_flag VALUES (?, ?)",
-                (identity, "unhandled_ignore"),
+                insert(db.input_expr_flag),
+                {"e": identity, "flag": "unhandled_ignore"},
             )
         if node.op == OpId.THIS:
             self.database.execute(
-                "INSERT INTO input_this_type VALUES (?, ?)",
-                (identity, self.type_id(this_type)),
+                insert(db.input_this_type),
+                {"e": identity, "t": self.lower_type(this_type)},
             )
         if node.op == OpId.VAR:
             assert node.str_val is not None
             binder = scope[node.str_val]
             binder_of = self.binder_owner[binder]
             self.database.execute(
-                "INSERT INTO input_var_ref VALUES (?, ?)",
-                (identity, binder),
+                insert(db.input_var_ref),
+                {"e": identity, "binder": binder},
             )
 
         inner = dict(scope)
@@ -607,21 +437,23 @@ class Lowering:
             self.binder_owner[binder] = identity
             inner[name] = binder
             self.database.execute(
-                "INSERT INTO input_binds VALUES (?, ?, ?)",
-                (identity, slot, binder),
+                insert(db.input_binds),
+                {"e": identity, "slot": slot, "binder": binder},
             )
 
-        self.database.executemany(
-            "INSERT INTO input_expr_arg_class VALUES (?, ?, ?)",
-            [
-                (identity, index, TYPE_CLASS_CONSTRUCTORS[cls])
-                for index, cls in operator.arg_class_facts(node)
-            ],
-        )
+        for index, cls in operator.arg_class_facts(node):
+            self.database.execute(
+                insert(db.input_expr_arg_class),
+                {"e": identity, "idx": index, "cls": cls},
+            )
+
         if operator.fixed_result is not None:
             self.database.execute(
-                "INSERT INTO input_expr_fixed_result VALUES (?, ?)",
-                (identity, self.type_id(operator.fixed_result)),
+                insert(db.input_expr_fixed_result),
+                {
+                    "e": identity,
+                    "t": self.lower_type(operator.fixed_result),
+                },
             )
 
         self.program.occurrences[identity] = Occurrence(
@@ -643,211 +475,90 @@ class Lowering:
                 inner if index in operator.scoped_args else scope,
             )
             self.database.execute(
-                "INSERT INTO input_expr_arg VALUES (?, ?, ?)",
-                (identity, index, argument_id),
+                insert(db.input_expr_arg),
+                {
+                    "e": identity,
+                    "idx": index,
+                    "arg": argument_id,
+                },
             )
 
         return identity
 
 
 @beartype
-def read_rows(
-    database: sqlite3.Connection,
-    relation: str,
-) -> List[List[str]]:
-    if relation not in OUTPUT_WIDTHS:
-        raise SouffleProtocolError(
-            f"Cannot read output relation {relation!r}: "
-            f"expected one of {sorted(OUTPUT_WIDTHS)}"
+def souffle_arguments(
+    input_database: Path,
+    output_database: Path,
+) -> list[str]:
+    library = get_serde_library_path()
+    if not library.exists():
+        raise FileNotFoundError(
+            f"Cannot run the Soufflé checker: serde library {library} does not exist"
         )
 
-    exists = database.execute(
-        "SELECT 1 FROM sqlite_master WHERE name = ? AND type IN ('table', 'view')",
-        (relation,),
-    ).fetchone()
-    if exists is None:
-        raise SouffleProtocolError(
-            f"Soufflé did not produce SQLite output relation {relation!r}"
+    macros = " ".join(
+        (
+            f'INPUT_DATABASE=\\"{input_database.resolve()}\\"',
+            f'OUTPUT_DATABASE=\\"{output_database.resolve()}\\"',
         )
+    )
 
-    cursor = database.execute(f'SELECT * FROM "{relation}"')
-    width = OUTPUT_WIDTHS[relation]
-    actual_width = len(cursor.description)
-
-    if actual_width != width:
-        raise SouffleProtocolError(
-            f"SQLite relation {relation!r}: expected {width} columns, got {actual_width}"
-        )
-
-    rows: List[List[str]] = []
-    for index, row in enumerate(cursor, start=1):
-        if any(value is None for value in row):
-            raise SouffleProtocolError(
-                f"SQLite relation {relation!r}, row {index}: "
-                f"unexpected NULL value in {row!r}"
-            )
-        rows.append([str(value) for value in row])
-
-    return rows
-
-
-@beartype
-def render_program(input_database: Path, output_database: Path) -> str:
-    statements = ['#include "logic_model/model_sqlite.dl"']
-
-    for relation in INPUT_COLUMNS:
-        statements.append(
-            f".input {relation}(IO=sqlite, dbname={sym(str(input_database))})"
-        )
-
-    for relation in OUTPUT_WIDTHS:
-        statements.append(
-            f".output {relation}(IO=sqlite, dbname={sym(str(output_database))})"
-        )
-
-    return "\n".join(statements) + "\n"
+    return [
+        "-w",
+        "-I",
+        str(RULES_DIR),
+        "-L",
+        str(library.parent),
+        "-l",
+        "hstd_cpp_souffle_serde",
+        "-M",
+        macros,
+    ]
 
 
 @beartype
 def read_inferred_types(
-    database: sqlite3.Connection,
-    index: ModelIndex,
+    database: Connection,
     program: LoweredProgram,
-) -> Tuple[Dict[int, TypeRef], Dict[int, Tuple[TypeRef, ...]]]:
-    """Reconstruct expression and binder types from normalized SQLite outputs."""
-    qnames = dict(index.by_id)
-    external: Set[QName] = set()
+) -> tuple[dict[int, TypeRef], dict[int, tuple[TypeRef, ...]]]:
+    """Read SQLAlchemy-decoded types and validate occurrence and binder identities."""
 
-    for record in index.model.records:
-        for field_def in record.fields:
-            collect_external_qnames(field_def.type, external)
+    result: dict[int, TypeRef] = {}
+    for row in database.execute(select(db.sq_inferred_type)).mappings():
+        identity = row["e"]
+        inferred = row["t"]
 
-    for occurrence in program.occurrences.values():
-        if occurrence.node.type_val is not None:
-            collect_external_qnames(occurrence.node.type_val, external)
-
-    for qname in external:
-        qnames[qname.to_id()] = qname
-
-    shapes = {row[0]: row[1:] for row in read_rows(database, "sq_inferred_type_shape")}
-
-    edges: Dict[str, Dict[int, str]] = {}
-    for key, slot, nested in read_rows(
-        database,
-        "sq_inferred_type_edge",
-    ):
-        edges.setdefault(key, {})[int(slot)] = nested
-
-    cache: Dict[str, TypeRef] = {}
-
-    def resolve_qname(text: str) -> QName:
-        if text not in qnames:
-            raise SouffleProtocolError(
-                f"Cannot reconstruct inferred type QName {text!r}: "
-                "it is neither a model declaration nor a referenced external type"
-            )
-        return qnames[text]
-
-    def build(key: str) -> TypeRef:
-        if key in cache:
-            return cache[key]
-        if key not in shapes:
-            raise SouffleProtocolError(
-                f"Cannot reconstruct inferred type ID {key!r}: "
-                "Soufflé did not export its structural description"
-            )
-
-        kind, name, detail, size = shapes[key]
-        slots = edges.get(key, {})
-
-        def argument(slot: int) -> TypeRef:
-            if slot not in slots:
-                raise SouffleProtocolError(
-                    f"Cannot reconstruct inferred type ID {key!r} ({kind}): "
-                    f"Soufflé did not export required type argument {slot}"
-                )
-            return build(slots[slot])
-
-        result: TypeRef
-        match kind:
-            case "prim":
-                result = PrimT(prim=PrimKind(name))
-            case "list":
-                result = ListT(elem=argument(0))
-            case "array":
-                result = ArrayT(elem=argument(0), size=int(size))
-            case "map":
-                result = MapT(key=argument(0), value=argument(1))
-            case "optional":
-                result = OptT(elem=argument(0))
-            case "tuple":
-                expected = list(range(len(slots)))
-                actual = sorted(slots)
-                if actual != expected:
-                    raise SouffleProtocolError(
-                        f"Cannot reconstruct tuple type ID {key!r}: "
-                        f"expected argument slots {expected}, got {actual}"
-                    )
-                result = TupleT(elems=tuple(argument(slot) for slot in expected))
-            case "named":
-                result = NamedT(qname=resolve_qname(name))
-            case "external":
-                result = ExternalT(
-                    package=detail,
-                    qname=resolve_qname(name),
-                )
-            case "variant":
-                result = VariantT(
-                    owner=resolve_qname(name),
-                    field=detail,
-                )
-            case "dyn":
-                result = DynT(root=argument(0))
-            case "param":
-                result = TypeParamT(name=name)
-            case _:
-                raise SouffleProtocolError(
-                    f"Cannot reconstruct inferred type ID {key!r}: "
-                    f"unsupported structural kind {kind!r}"
-                )
-
-        cache[key] = result
-        return result
-
-    result: Dict[int, TypeRef] = {}
-    for expression, key in read_rows(database, "sq_inferred_type"):
-        identity = int(expression)
         if identity not in program.occurrences:
             raise SouffleProtocolError(
-                f"Inferred type ID {key!r} refers to expression {identity}, "
+                f"Inferred type {inferred!r} refers to expression {identity}, "
                 "which was never lowered"
             )
         if identity in result:
             raise SouffleProtocolError(
                 f"Expression {identity} has multiple inferred types: "
-                f"{result[identity]!r} and {build(key)!r}; "
+                f"{result[identity]!r} and {inferred!r}; "
                 "ExprNode.typed_as requires a single type"
             )
-        result[identity] = build(key)
 
-    binder_slots: Dict[int, Dict[int, TypeRef]] = {}
-    for expression, slot_text, key in read_rows(
-        database,
-        "sq_inferred_binder_type",
-    ):
-        identity = int(expression)
-        slot = int(slot_text)
+        result[identity] = inferred
+
+    binder_slots: dict[int, dict[int, TypeRef]] = {}
+    for row in database.execute(select(db.sq_inferred_binder_type)).mappings():
+        identity = row["e"]
+        slot = row["slot"]
+        inferred = row["t"]
 
         if identity not in program.occurrences:
             raise SouffleProtocolError(
-                f"Inferred binder type ID {key!r} refers to expression "
+                f"Inferred binder type {inferred!r} refers to expression "
                 f"{identity}, which was never lowered"
             )
 
         node = program.occurrences[identity].node
         if not 0 <= slot < len(node.binders):
             raise SouffleProtocolError(
-                f"Inferred binder type ID {key!r} refers to slot {slot} "
+                f"Inferred binder type {inferred!r} refers to slot {slot} "
                 f"of expression {identity}, which has {len(node.binders)} binders"
             )
 
@@ -855,13 +566,13 @@ def read_inferred_types(
         if slot in slots:
             raise SouffleProtocolError(
                 f"Binder slot {slot} of expression {identity} has multiple "
-                f"inferred types: {slots[slot]!r} and {build(key)!r}; "
+                f"inferred types: {slots[slot]!r} and {inferred!r}; "
                 "ExprNode.binder_types requires a single type per binder"
             )
 
-        slots[slot] = build(key)
+        slots[slot] = inferred
 
-    binder_types: Dict[int, Tuple[TypeRef, ...]] = {}
+    binder_types: dict[int, tuple[TypeRef, ...]] = {}
     for identity, occurrence in program.occurrences.items():
         slots = binder_slots.get(identity, {})
         count = len(occurrence.node.binders)
@@ -874,42 +585,37 @@ def read_inferred_types(
 
 @beartype
 def run_for_diagnostics(
-    source: Path,
+    input_database: Path,
     output_database: Path,
-    index: ModelIndex,
     program: LoweredProgram,
 ) -> DiagnosticsResult:
     local["souffle"][
-        "-w",
-        "-I",
-        str(RULES_DIR),
-        str(source),
+        *souffle_arguments(input_database, output_database),
+        str(SQLITE_PROGRAM),
     ]()
 
-    with closing(
-        sqlite3.connect(
-            output_database.as_uri() + "?mode=ro",
-            uri=True,
-        )
-    ) as database:
-        diags = [
-            DiagRow(
-                code=row[0],
-                expr=int(row[1]),
-                arg=int(row[2]),
-                detail=row[3],
-                actual=row[4],
-                subject=row[5],
+    with db.database_engine(output_database, read_only=True) as engine:
+        with engine.connect() as database:
+            diags = [
+                DiagRow(
+                    code=row["code"],
+                    expr=row["e"],
+                    arg=row["idx"],
+                    detail=row["detail"],
+                    actual=row["actual"],
+                    subject=row["subject"],
+                )
+                for row in database.execute(select(db.sq_diag)).mappings()
+            ]
+            untyped = set(database.execute(select(db.untyped.c.e)).scalars())
+            typed_as = {
+                row["e"]: row["text"]
+                for row in database.execute(select(db.typed_as)).mappings()
+            }
+            inferred_types, binder_types = read_inferred_types(
+                database,
+                program,
             )
-            for row in read_rows(database, "diag")
-        ]
-        untyped = {int(row[0]) for row in read_rows(database, "untyped")}
-        typed_as = {int(row[0]): row[1] for row in read_rows(database, "typed_as")}
-        inferred_types, binder_types = read_inferred_types(
-            database,
-            index,
-            program,
-        )
 
     return DiagnosticsResult(
         diags=diags,
@@ -923,35 +629,49 @@ def run_for_diagnostics(
 @beartype
 def run_type_check(
     index: ModelIndex,
-    table: Dict[OpId, Operator],
+    table: dict[OpId, Operator],
+    capture_databases: bool = False,
 ) -> TypeCheckOutput:
-    """Run the SQLite-backed type checker and rewrite expression annotations."""
-    program = Lowering(index, table).lower()
-
-    path = get_serde_library_path()
-    assert path.exists(), str(path)
+    """Run the checker; optionally retain typed dataframe snapshots for inspection."""
 
     with tempfile.TemporaryDirectory() as temporary:
         directory = Path(temporary)
         input_database = directory / "input.sqlite"
         output_database = directory / "output.sqlite"
-        source = directory / "program.dl"
 
-        input_database.write_bytes(program.database)
-        source.write_text(
-            render_program(input_database, output_database),
-            encoding="utf-8",
+        schema = prepare_serde_schema(
+            SQLITE_PROGRAM,
+            souffle_arguments(input_database, output_database),
         )
+
+        with db.database_engine(input_database) as engine:
+            db.input_metadata.create_all(engine)
+            with engine.begin() as database:
+                database.execute(
+                    insert(db.serde_schema),
+                    {"schema": schema},
+                )
+                program = Lowering(index, table, database).lower()
+
         diagnostics = run_for_diagnostics(
-            source,
+            input_database,
             output_database,
-            index,
             program,
         )
 
-        osd = getenv("HSTD_STABLE_TEST_DIR_PATH", None)
-        if osd:
-            debug_directory = Path(osd)
+        if capture_databases:
+            program.input_database = db.load_database_as_dataframe_structure(
+                input_database,
+                db.InputDatabase,
+            )
+            program.output_database = db.load_database_as_dataframe_structure(
+                output_database,
+                db.OutputDatabase,
+            )
+
+        debug_path = getenv("HSTD_STABLE_TEST_DIR_PATH")
+        if debug_path:
+            debug_directory = Path(debug_path)
             debug_directory.mkdir(parents=True, exist_ok=True)
             debug_directory.joinpath("input.txt").write_text(
                 format_db_all(input_database),
@@ -961,9 +681,10 @@ def run_type_check(
                 format_db_all(output_database),
                 encoding="utf-8",
             )
-
-        else:
-            assert False
+            debug_directory.joinpath("schema.json").write_text(
+                schema + "\n",
+                encoding="utf-8",
+            )
 
     for diagnostic in diagnostics.diags:
         if diagnostic.expr not in program.occurrences:
@@ -972,8 +693,8 @@ def run_type_check(
                 f"{diagnostic.expr}, which was never lowered"
             )
 
-    arguments: Dict[int, Dict[int, int]] = {}
-    roots: Dict[QName, Dict[str, Dict[CheckPart, int]]] = {}
+    arguments: dict[int, dict[int, int]] = {}
+    roots: dict[QName, dict[str, dict[CheckPart, int]]] = {}
 
     for identity, occurrence in program.occurrences.items():
         if occurrence.parent is None:
@@ -987,7 +708,7 @@ def run_type_check(
                 {},
             )[occurrence.arg_index] = identity
 
-    nodes: Dict[int, ExprNode] = {}
+    nodes: dict[int, ExprNode] = {}
     for identity in sorted(program.occurrences, reverse=True):
         occurrence = program.occurrences[identity]
         slots = arguments.get(identity, {})
@@ -1014,8 +735,8 @@ def run_type_check(
         for argument in expr.args:
             warn_untyped(argument)
 
-    checks: Dict[QName, Dict[str, CheckDef]] = {}
-    records: List[RecordDef] = []
+    checks: dict[QName, dict[str, CheckDef]] = {}
+    records: list[RecordDef] = []
 
     def rewrite_check(record: QName, check: CheckDef) -> CheckDef:
         parts = roots[record][check.id]
@@ -1054,7 +775,7 @@ def run_type_check(
         )
 
     model = index.model.model_copy(update={"records": tuple(records)})
-    occurrences: Dict[int, Occurrence] = {}
+    occurrences: dict[int, Occurrence] = {}
 
     for identity, occurrence in program.occurrences.items():
         root = occurrence.root
@@ -1070,8 +791,9 @@ def run_type_check(
     return TypeCheckOutput(
         model=model,
         program=LoweredProgram(
-            database=program.database,
             occurrences=occurrences,
+            input_database=program.input_database,
+            output_database=program.output_database,
         ),
         diags=diagnostics.diags,
         untyped=diagnostics.untyped,

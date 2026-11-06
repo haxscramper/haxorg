@@ -1,148 +1,141 @@
 #pragma once
 
-// TODO: Should the expr `ExprId` be renamed to the ExprOccurrenceId to better reflect the
-// lowering behaivor?
-.decl diag(code: DiagCode, e: ExprId, idx: number, detail: symbol, actual: symbol, subject: symbol)
+// Diagnostics carry structural types and categorized details instead of rendered text.
+.decl diag(
+    code: DiagCode,
+    e: ExprId,
+    idx: number,
+    detail: DiagnosticDetail,
+    actual: Type,
+    subject: OptType
+)
 
-diag("unknown-field", E, 0, N, S, K) :-
+diag("unknown-field", E, 0, $TextDetail(N), T, $SomeType(T)) :-
     expr(E, "get_field"),
     expr_str(E, N),
     operand(E, 0, T),
     T = $TNamed(Q),
     record_like(T),
-    !effective_field(Q, as(N, FieldName), _),
-    type_text(T, S),
-    type_key(T, K).
-diag("unknown-field", E, 0, N, S, K) :-
+    !effective_field(Q, as(N, FieldName), _).
+
+diag("unknown-field", E, 0, $TextDetail(N), T, $SomeType(T)) :-
     expr(E, "get_field"),
     expr_str(E, N),
     operand(E, 0, T),
     T = $TVariant(O, F),
-    !variant_field(O, F, as(N, FieldName), _),
-    type_text(T, S),
-    type_key(T, K).
-diag("field-on-non-record", E, 0, N, S, "") :-
+    !variant_field(O, F, as(N, FieldName), _).
+
+diag("field-on-non-record", E, 0, $TextDetail(N), T, $NoType()) :-
     expr(E, "get_field"),
     expr_str(E, N),
     operand(E, 0, T),
-    !record_like(T),
-    type_text(T, S).
-diag("ambiguous-case-field", E, 0, N, S, K) :-
+    !record_like(T).
+
+diag("ambiguous-case-field", E, 0, $TextDetail(N), T, $SomeType(T)) :-
     expr(E, "get_field"),
     expr_str(E, N),
     operand(E, 0, T),
     T = $TVariant(O, F),
     variant_field(O, F, as(N, FieldName), T1),
     variant_field(O, F, as(N, FieldName), T2),
-    T1 != T2,
-    type_text(T, S),
-    type_key(T, K).
-diag("invalid-case-tag", E, 0, Tag, S, K) :-
+    T1 != T2.
+
+diag("invalid-case-tag", E, 0, $TextDetail(Tag), T, $SomeType(T)) :-
     expr(E, "case_is"),
     expr_str(E, Tag),
     operand(E, 0, T),
     T = $TVariant(O, F),
-    !variant_case(O, F, as(Tag, CaseTag), _),
-    type_text(T, S),
-    type_key(T, K).
-diag("not-a-variant", E, 0, "", S, "") :-
+    !variant_case(O, F, as(Tag, CaseTag), _).
+
+diag("not-a-variant", E, 0, $NoDetail(), T, $NoType()) :-
     expr(E, Op),
     (Op = "case_is" ; Op = "case_which"),
     operand(E, 0, T),
-    !variant_like(T),
-    type_text(T, S).
-diag("invalid-enum-value", E, 0, N, S, K) :-
+    !variant_like(T).
+
+diag("invalid-enum-value", E, 0, $TextDetail(N), T, $SomeType(T)) :-
     expr(E, "enum_is"),
     expr_str(E, N),
     operand(E, 0, T),
     T = $TNamed(Q),
     is_enum(Q),
-    !enum_value(Q, as(N, EnumName)),
-    type_text(T, S),
-    type_key(T, K).
-diag("not-an-enum", E, 0, "", S, "") :-
+    !enum_value(Q, as(N, EnumName)).
+
+diag("not-an-enum", E, 0, $TextDetail(N), T, $NoType()) :-
     expr(E, "enum_is"),
+    expr_str(E, N),
     operand(E, 0, T),
-    !enum_like(T),
-    type_text(T, S).
-diag("tuple-index", E, 0, to_string(I), S, "") :-
+    !enum_like(T).
+
+diag("tuple-index", E, 0, $TextDetail(to_string(I)), T, $NoType()) :-
     expr(E, "nth_get"),
     expr_int(E, I),
     operand(E, 0, T),
     T = $TTuple(L),
-    !tuple_nth(L, I, _),
-    type_text(T, S).
-diag("not-a-tuple", E, 0, "", S, "") :-
+    !tuple_nth(L, I, _).
+
+diag("not-a-tuple", E, 0, $NoDetail(), T, $NoType()) :-
     expr(E, "nth_get"),
     operand(E, 0, T),
-    !tuple_like(T),
-    type_text(T, S).
-diag("not-a-record", E, 0, "", S, "") :-
+    !tuple_like(T).
+
+diag("not-a-record", E, 0, $NoDetail(), T, $NoType()) :-
     expr(E, "is_derived"),
     operand(E, 0, T),
-    !record_like(T),
-    type_text(T, S).
-diag("arg-class", E, I, CT, S, "") :-
+    !record_like(T).
+
+diag("arg-class", E, I, $ClassDetail(C), T, $NoType()) :-
     expr_arg_class(E, I, C),
     expr_arg(E, I, A),
     typed(A),
     !arg_class_ok(E, I),
-    class_text(C, CT),
-    operand_text(E, I, S).
-diag("incompatible-operands", E, 1, SL, SR, "") :-
+    operand(E, I, T).
+
+diag("incompatible-operands", E, 1, $TypeDetail(L), R, $NoType()) :-
     expr(E, Op),
     op_binary(Op),
     !typed(E),
     !arg_class_failed(E),
-    operand_text(E, 0, SL),
-    operand_text(E, 1, SR).
-diag("branch-mismatch", E, 2, S1, S2, "") :-
+    operand(E, 0, L),
+    operand(E, 1, R).
+
+diag("branch-mismatch", E, 2, $TypeDetail(T1), T2, $NoType()) :-
     expr(E, Op),
     (Op = "cond" ; Op = "fold"),
     operand(E, 1, T1),
     operand(E, 2, T2),
-    T1 != T2,
-    type_text(T1, S1),
-    type_text(T2, S2).
-diag("branch-mismatch", E, I, S1, S2, "") :-
+    T1 != T2.
+
+diag("branch-mismatch", E, I, $TypeDetail(T1), T2, $NoType()) :-
     expr(E, "type_cond"),
     operand(E, 1, T1),
     operand(E, I, T2),
     1 < I,
-    T1 != T2,
-    type_text(T1, S1),
-    type_text(T2, S2).
-diag("root-type", E, -1, SX, ST, "") :-
+    T1 != T2.
+
+diag("root-type", E, -1, $TypeDetail(X), T, $NoType()) :-
     root(E, X),
     expr_type(E, T),
-    T != X,
-    type_text(X, SX),
-    type_text(T, ST).
-diag("unreachable-type-case", E, 0, SP, SR, K) :-
+    T != X.
+
+diag("unreachable-type-case", E, 0, $TypeDetail(P), ST, $SomeType(ST)) :-
     expr(E, "type_case"),
     case_subject(E, ST),
     ST = $TDyn(_),
     expr_type_val(E, P),
-    !dyn_case_reachable(E),
-    type_text(P, SP),
-    type_text(ST, SR),
-    type_key(ST, K).
-diag("incompatible-type-case", E, 0, SP, SS, "") :-
+    !dyn_case_reachable(E).
+
+diag("incompatible-type-case", E, 0, $TypeDetail(P), ST, $NoType()) :-
     expr(E, "type_case"),
     case_subject(E, ST),
     !dyn_like(ST),
     !type_case_compatible(E),
-    expr_type_val(E, P),
-    type_text(P, SP),
-    type_text(ST, SS).
-diag("not-derivable", E, 0, SP, SQ, "") :-
+    expr_type_val(E, P).
+
+diag("not-derivable", E, 0, $TypeDetail(PT), T, $NoType()) :-
     expr(E, "is_derived"),
     operand(E, 0, T),
     T = $TNamed(Q),
     expr_type_val(E, PT),
     PT = $TNamed(P),
-    !related(Q, P),
-    type_text(PT, SP),
-    type_text(T, SQ).
-
-.output diag
+    !related(Q, P).

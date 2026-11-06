@@ -58,3 +58,22 @@
     | CList {}
     | CMap {}
     | COptional {}
+
+// Optional structural subject associated with a diagnostic.
+.type OptType = NoType {} | SomeType { value: Type }
+
+// Diagnostic details retain their semantic category until rendered by a consumer.
+.type DiagnosticDetail
+    = NoDetail {}
+    | TextDetail { value: symbol }
+    | TypeDetail { value: Type }
+    | ClassDetail { value: TypeClass }
+
+// A common envelope lets one pair of serde functors handle every database ADT column.
+.type DbValue
+    = DbType { value: Type }
+    | DbQName { value: QName }
+    | DbPrim { value: Prim }
+    | DbClass { value: TypeClass }
+    | DbDiagnosticDetail { value: DiagnosticDetail }
+    | DbOptionalType { value: OptType }

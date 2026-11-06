@@ -1,76 +1,9 @@
+#pragma once
+
+// Expression results exported structurally by the SQLite entry point.
 .decl inferred_type(e: ExprId, t: Type)
 inferred_type(E, T) :- expr_type(E, T).
 
-.output inferred_type
-
+// Binder results retain the introducing expression and its binder slot.
 .decl inferred_binder_type(e: ExprId, slot: number, t: Type)
 inferred_binder_type(E, S, T) :- binds(E, S, B), binder_type(B, T).
-.output inferred_binder_type
-
-.decl inferred_type_shape(
-    t: Type,
-    kind: symbol,
-    name: symbol,
-    detail: symbol,
-    size: number
-)
-
-inferred_type_shape(T, "prim", S, "", 0) :-
-    type_seen(T), T = $TPrim(P), prim_text(P, S).
-
-inferred_type_shape(T, "list", "", "", 0) :-
-    type_seen(T), T = $TList(_).
-
-inferred_type_shape(T, "array", "", "", N) :-
-    type_seen(T), T = $TArray(_, N).
-
-inferred_type_shape(T, "map", "", "", 0) :-
-    type_seen(T), T = $TMap(_, _).
-
-inferred_type_shape(T, "optional", "", "", 0) :-
-    type_seen(T), T = $TOpt(_).
-
-inferred_type_shape(T, "tuple", "", "", 0) :-
-    type_seen(T), T = $TTuple(_).
-
-inferred_type_shape(T, "named", S, "", 0) :-
-    type_seen(T), T = $TNamed(Q), qname_text(Q, S).
-
-inferred_type_shape(T, "external", S, P, 0) :-
-    type_seen(T), T = $TExternal(P, Q), qname_text(Q, S).
-
-inferred_type_shape(T, "variant", S, F, 0) :-
-    type_seen(T), T = $TVariant(Q, F), qname_text(Q, S).
-
-inferred_type_shape(T, "dyn", "", "", 0) :-
-    type_seen(T), T = $TDyn(_).
-
-inferred_type_shape(T, "param", N, "", 0) :-
-    type_seen(T), T = $TParam(N).
-
-.output inferred_type_shape
-
-.decl inferred_type_edge(t: Type, slot: number, nested: Type)
-
-inferred_type_edge(T, 0, E) :-
-    type_seen(T), T = $TList(E).
-
-inferred_type_edge(T, 0, E) :-
-    type_seen(T), T = $TArray(E, _).
-
-inferred_type_edge(T, 0, K) :-
-    type_seen(T), T = $TMap(K, _).
-
-inferred_type_edge(T, 1, V) :-
-    type_seen(T), T = $TMap(_, V).
-
-inferred_type_edge(T, 0, E) :-
-    type_seen(T), T = $TOpt(E).
-
-inferred_type_edge(T, I, E) :-
-    type_seen(T), T = $TTuple(L), tuple_nth(L, I, E).
-
-inferred_type_edge(T, 0, R) :-
-    type_seen(T), T = $TDyn(R).
-
-.output inferred_type_edge

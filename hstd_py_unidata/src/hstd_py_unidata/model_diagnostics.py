@@ -16,6 +16,7 @@ from hstd_py_unidata.model_ir import (
     OpId,
     QName,
     SourceLoc,
+    TypeRef,
     VariantT,
     expr_tree_repr,
     type_text,
@@ -175,7 +176,8 @@ class DiagnosticBuilder:
             self.output.typed_as.get(n, "<untyped>") for n in self.nested.get(expr, [])
         ]
 
-    def record_fields(self, subject: str) -> str:
+    def record_fields(self, subject: TypeRef) -> str:
+        subject: str = type_text(subject)
         if "#" in subject:
             owner, vfield = subject.split("#", 1)
             vdef = self.index.variant(
@@ -190,8 +192,8 @@ class DiagnosticBuilder:
         names = [f.name for f in self.index.effective_fields(rec.qname)]
         return f"available fields: {', '.join(names) or '(none)'}"
 
-    def variant_tags(self, subject: str) -> str:
-        owner, vfield = subject.split("#", 1)
+    def variant_tags(self, subject: TypeRef) -> str:
+        owner, vfield = type_text(subject).split("#", 1)
         vdef = self.index.variant(VariantT(owner=self.index.by_id[owner], field=vfield))
         return ", ".join(c.tag for c in vdef.cases)
 
@@ -199,47 +201,51 @@ class DiagnosticBuilder:
         row = rows[0]
         o = self.occ[row.expr]
         op = o.node.op.value
+
+        def act_t() -> str:
+            return type_text(row.actual)
+
         match code:
             case DiagCode.UNKNOWN_FIELD:
-                return f"field '{row.detail}' does not exist on '{row.actual}'; {self.record_fields(row.subject)}"
+                return f"field '{row.detail}' does not exist on '{act_t()}'; {self.record_fields(row.subject)}"
             case DiagCode.FIELD_ON_NON_RECORD:
-                return f"field access '{row.detail}' requires a record or variant operand, but the operand has type '{row.actual}'"
+                return f"field access '{row.detail}' requires a record or variant operand, but the operand has type '{act_t()}'"
             case DiagCode.AMBIGUOUS_CASE_FIELD:
-                return f"field '{row.detail}' is declared with different types in several cases of '{row.actual}'; {self.record_fields(row.subject)}"
+                return f"field '{row.detail}' is declared with different types in several cases of '{act_t()}'; {self.record_fields(row.subject)}"
             case DiagCode.INVALID_CASE_TAG:
-                return f"'{row.detail}' is not a case of '{row.actual}'; expected one of: {self.variant_tags(row.subject)}"
+                return f"'{row.detail}' is not a case of '{act_t()}'; expected one of: {self.variant_tags(row.subject)}"
             case DiagCode.NOT_A_VARIANT:
-                return f"'{op}' requires a variant operand (a field created by __variant__), but the operand has type '{row.actual}'"
+                return f"'{op}' requires a variant operand (a field created by __variant__), but the operand has type '{act_t()}'"
             case DiagCode.INVALID_ENUM_VALUE:
                 names = ", ".join(
                     ev.name
                     for ev in self.index.enum_values(self.index.by_id[row.subject])
                 )
 
-                return f"'{row.detail}' is not a value of enum '{row.actual}'; expected one of: {names}"
+                return f"'{row.detail}' is not a value of enum '{act_t()}'; expected one of: {names}"
             case DiagCode.NOT_AN_ENUM:
-                return f"'{op}' requires an enum operand, but the operand has type '{row.actual}'"
+                return f"'{op}' requires an enum operand, but the operand has type '{act_t()}'"
             case DiagCode.TUPLE_INDEX:
-                return f"tuple index {row.detail} is out of range for '{row.actual}'"
+                return f"tuple index {row.detail} is out of range for '{act_t()}'"
             case DiagCode.NOT_A_TUPLE:
-                return f"'{op}' requires a tuple operand, but the operand has type '{row.actual}'"
+                return f"'{op}' requires a tuple operand, but the operand has type '{act_t()}'"
             case DiagCode.NOT_A_RECORD:
-                return f"'{op}' requires a record operand, but the operand has type '{row.actual}'"
+                return f"'{op}' requires a record operand, but the operand has type '{act_t()}'"
             case DiagCode.ARG_CLASS:
                 expected = " or ".join(sorted({r.detail for r in rows}))
-                return f"argument '{self.table[o.node.op].role(row.arg)}' of '{op}' must be {expected}, but has type '{row.actual}'"
+                return f"argument '{self.table[o.node.op].role(row.arg)}' of '{op}' must be {expected}, but has type '{act_t()}'"
             case DiagCode.INCOMPATIBLE_OPERANDS:
-                return f"operands of '{op}' have incompatible types '{row.detail}' and '{row.actual}' because {self.operand_type_rule(o.node.op)}"
+                return f"operands of '{op}' have incompatible types '{row.detail}' and '{act_t()}' because {self.operand_type_rule(o.node.op)}"
             case DiagCode.BRANCH_MISMATCH:
                 match o.node.op:
                     case OpId.FOLD:
-                        return f"fold body must produce the accumulator type '{row.detail}' given by the initial value, but produces '{row.actual}'"
+                        return f"fold body must produce the accumulator type '{row.detail}' given by the initial value, but produces '{act_t()}'"
                     case OpId.TYPE_COND:
-                        return f"all type_case branches must have the same result type; the first branch has '{row.detail}', branch {row.arg - 1} has '{row.actual}'"
+                        return f"all type_case branches must have the same result type; the first branch has '{row.detail}', branch {row.arg - 1} has '{act_t()}'"
                     case _:
-                        return f"both branches of op_cond must have the same type, the 'then' branch has '{row.detail}' and the 'else' branch has '{row.actual}'"
+                        return f"both branches of op_cond must have the same type, the 'then' branch has '{row.detail}' and the 'else' branch has '{act_t()}'"
             case DiagCode.ROOT_TYPE:
-                return f"the check {o.root.part.value} must have type '{row.detail}', but has type '{row.actual}'"
+                return f"the check {o.root.part.value} must have type '{row.detail}', but has type '{act_t()}'"
             case DiagCode.UNREACHABLE_TYPE_CASE:
                 reachable = (
                     ", ".join(
@@ -251,11 +257,11 @@ class DiagnosticBuilder:
                     if row.subject
                     else "(unknown)"
                 )
-                return f"type_case pattern '{row.detail}' can never match because no value of that type or of its subtypes is reachable from '{row.actual}'; reachable declarations: {reachable}"
+                return f"type_case pattern '{row.detail}' can never match because no value of that type or of its subtypes is reachable from '{act_t()}'; reachable declarations: {reachable}"
             case DiagCode.INCOMPATIBLE_TYPE_CASE:
-                return f"type_case pattern '{row.detail}' is unrelated to the subject type '{row.actual}'; the pattern must be the subject type, one of its subtypes or one of its bases"
+                return f"type_case pattern '{row.detail}' is unrelated to the subject type '{act_t()}'; the pattern must be the subject type, one of its subtypes or one of its bases"
             case DiagCode.NOT_DERIVABLE:
-                return f"'{row.actual}' and '{row.detail}' are unrelated by inheritance, so the derivation test is always false"
+                return f"'{act_t()}' and '{row.detail}' are unrelated by inheritance, so the derivation test is always false"
             case DiagCode.UNTYPED:
                 return self.describe_untyped(row.expr)
 

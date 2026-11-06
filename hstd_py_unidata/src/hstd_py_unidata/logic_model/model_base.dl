@@ -323,6 +323,3 @@ arg_class_ok(E, I) :- expr_arg_class(E, I, C), expr_arg(E, I, A), has_class(A, C
 arg_class_failed(E) :- expr_arg_class(E, I, _), expr_arg(E, I, A), typed(A), !arg_class_ok(E, I).
 
 #include "logic_model/model_diag.dl"
-
-.output untyped
-.output typed_as

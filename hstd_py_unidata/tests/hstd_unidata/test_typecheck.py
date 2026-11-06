@@ -79,7 +79,10 @@ def test_types_are_per_occurrence(stable_test_dir: Path) -> None:
     assert len(diags) == 1
     assert diags[0].code == DiagCode.ARG_CLASS
     assert diags[0].record.name == "Stringy"
-    assert "must be a list" in diags[0].message
+    assert (
+        "argument 'list' of 'list_size' must be list, but has type 'string'"
+        in diags[0].message
+    )
 
 
 def test_map_preserves_result_type(stable_test_dir: Path) -> None:
