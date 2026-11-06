@@ -1,3 +1,5 @@
+from collections.abc import Mapping
+
 import hstd_py_lib.json_utils as ju
 import pandas as pd
 import rich.box
@@ -41,6 +43,12 @@ def dataframe_to_rich_table(
     return table
 
 
+@beartype
+def dataframe_dict_to_table_dict(frames: Mapping[str, pd.DataFrame]) -> dict[str, Table]:
+    return {name: dataframe_to_rich_table(df) for name, df in frames.items()}
+
+
+@beartype
 def dataframe_from_dict_list(
     column_names: Union[List[str], pd.DataFrame],
     data_dicts: List[Dict[str, Any]],

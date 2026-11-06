@@ -602,16 +602,23 @@ class DslModel:
         assert self.cached_index is not None
         return self.cached_index
 
-    def type_check_diagnostics(self) -> TypeDiagResult:
-        output = run_type_check(self.index, self.table)
+    def type_check_diagnostics(self, capture_databases: bool = False) -> TypeDiagResult:
+        output = run_type_check(
+            self.index,
+            self.table,
+            capture_databases=capture_databases,
+        )
         return TypeDiagResult(
             diagnostics=build_diagnostics(self.index, self.table, output),
             type_check=output,
         )
 
-    def type_check(self) -> TypeDiagResult:
+    def type_check(
+        self,
+        capture_databases: bool = False,
+    ) -> TypeDiagResult:
         """Raises `DslTypeError` with one diagnostic per root cause when any check expression is ill-typed."""
-        diagnostics = self.type_check_diagnostics()
+        diagnostics = self.type_check_diagnostics(capture_databases=capture_databases)
 
         # Path("/tmp/debug.dl").write_text(render_program(diagnostics.type_check.program))
 

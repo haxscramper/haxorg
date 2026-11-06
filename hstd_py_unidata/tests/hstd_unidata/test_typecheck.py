@@ -43,7 +43,7 @@ def test_valid_model_passes(stable_test_dir: Path) -> None:
             message="needs a lid",
         )
 
-    M.type_check()
+    M.type_check(capture_databases=True)
 
 
 def test_unknown_field_lists_available_fields(stable_test_dir: Path) -> None:
@@ -100,7 +100,7 @@ def test_map_preserves_result_type(stable_test_dir: Path) -> None:
         )
 
     with pytest.raises(DslTypeError) as err:
-        M.type_check()
+        M.type_check(capture_databases=True)
     assert err.value.diagnostics[0].code == DiagCode.ROOT_TYPE
     assert "has type 'list<string>'" in err.value.diagnostics[0].message
 

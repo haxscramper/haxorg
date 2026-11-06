@@ -307,7 +307,7 @@ def has_weighted_edge(value: Value) -> bool:
 
 
 def test_example_dia_main(stable_test_dir: Path):
-    M.type_check()
+    M.type_check(capture_databases=True)
     logger.info("Souffle type check passed")
     for seed in range(100):
         diagram = generate_diagram(seed)

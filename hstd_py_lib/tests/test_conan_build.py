@@ -656,7 +656,7 @@ def write_workspace(root: Path, members: tuple[str, ...]) -> None:
                     "sources": sources,
                 },
             },
-            "dependency-groups": {"dev": ["pytest>=8.4.2"]},
+            "dependency-groups": {"dev": ["pytest>=9"]},
         },
     )
 

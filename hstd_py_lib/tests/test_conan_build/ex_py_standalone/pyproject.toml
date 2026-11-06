@@ -6,7 +6,7 @@ dependencies = []
 
 [dependency-groups]
 dev = [
-  "pytest>=8.4.2",
+  "pytest>=9",
   # for validation using plugin with LLDB
   "hstd_py_lib",
 ]

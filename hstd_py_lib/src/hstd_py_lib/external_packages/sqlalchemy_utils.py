@@ -1,11 +1,17 @@
+import sqlite3
+from contextlib import contextmanager
 from datetime import datetime
 from pathlib import Path
 
 import hstd_py_lib.json_utils as ju
+import pandas as pd
 from beartype import beartype
-from beartype.typing import Any, Dict, List, Optional, Union
-from hstd_py_lib.external_packages.rich_utils import use_colored_repr
-from rich.console import Console
+from beartype.typing import Any, Dict, Iterator, List, Mapping, Optional, Union
+from hstd_py_lib.external_packages.rich_utils import (
+    dict_of_tables_to_group,
+    render_rich,
+    use_colored_repr,
+)
 from rich.table import Table
 from sqlalchemy import (
     URL,
@@ -19,6 +25,7 @@ from sqlalchemy import (
     String,
     create_engine,
     inspect,
+    text,
 )
 from sqlalchemy import (
     Table as SATable,
@@ -208,53 +215,22 @@ def format_db_all(
 ) -> str:
 
     engine = _map_engine_or_session(engine_or_session)
-
-    def st(text: str, wrap: str) -> str:
-        if style:
-            return f"[{wrap}]{text}[/{wrap}]"
-
-        else:
-            return text
-
     ignored_columns = ignored_columns or {}
-    console = Console(
-        no_color=not style,
-        force_terminal=style,
-        width=999999999,
+    tables = get_table_names(engine, excluded_tables)
+
+    return render_rich(
+        dict_of_tables_to_group(
+            {
+                name: format_rich_table(
+                    engine,
+                    name,
+                    ignored_columns.get(name, []),
+                    style=style,
+                )
+                for name in tables
+            }
+        )
     )
-    with console.capture() as capture:
-        tables = get_table_names(engine, excluded_tables)
-        for table_name in tables:
-            table_content = format_rich_table(
-                engine,
-                table_name,
-                ignored_columns.get(table_name, []),
-                style=style,
-            )
-
-            if table_content.row_count == 0:
-                console.print(
-                    "Table: {table_name} {size}{empty}".format(
-                        table_name=st(str(table_name), "bold magenta"),
-                        size=st("Size:", "white"),
-                        empty=st("empty", "red"),
-                    ),
-                    style="bold underline" if style else None,
-                )
-
-            else:
-                console.print(
-                    "Table: {table_name} {size}{count}".format(
-                        table_name=st(str(table_name), "bold magenta"),
-                        size=st("Size:", "white"),
-                        count=table_content.row_count,
-                    ),
-                    style="bold underline" if style else None,
-                )
-
-                console.print(table_content)
-
-    return capture.get()
 
 
 @beartype
@@ -325,6 +301,29 @@ def open_sqlite(file: Path, base: Any = None) -> Engine:
     return engine
 
 
+@contextmanager
+@beartype
+def database_engine_scope(
+    database_path: str | Path,
+    read_only: bool = False,
+) -> Iterator[Engine]:
+    path = Path(database_path).resolve()
+
+    if read_only:
+        uri = path.as_uri() + "?mode=ro"
+        engine = create_engine(
+            "sqlite+pysqlite://",
+            creator=lambda: sqlite3.connect(uri, uri=True),
+        )
+    else:
+        engine = create_engine(URL.create("sqlite+pysqlite", database=str(path)))
+
+    try:
+        yield engine
+    finally:
+        engine.dispose()
+
+
 @beartype
 def open_sqlite_session(file: Union[Path, Engine], base: Any = None) -> Session:
     if isinstance(file, Engine):
@@ -333,3 +332,34 @@ def open_sqlite_session(file: Union[Path, Engine], base: Any = None) -> Session:
     else:
         engine = open_sqlite(file, base)
         return sessionmaker()(bind=engine)
+
+
+@beartype
+def load_database_as_dataframe_structure(
+    database_path: str | Path,
+    schema: MetaData,
+    *,
+    ignored_tables: set[str] = set(),  # noqa
+    decode_mapped_types: bool = True,
+) -> Mapping[str, pd.DataFrame]:
+    """Read typed selections so dataframe cells contain decoded ADT values."""
+
+    import pandas as pd
+
+    with database_engine_scope(database_path, read_only=True) as engine:
+        with engine.connect() as connection:
+            dataframes = {
+                str(table.name): pd.read_sql_query(
+                    (
+                        select(table)
+                        if decode_mapped_types
+                        else text(str(select(table).compile(dialect=engine.dialect)))
+                    ),
+                    connection,
+                    coerce_float=False,
+                )
+                for table in schema.sorted_tables
+                if str(table.name) not in ignored_tables
+            }
+
+    return dict(**dataframes)

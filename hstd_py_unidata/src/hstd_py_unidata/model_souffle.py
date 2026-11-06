@@ -2,13 +2,19 @@ from __future__ import annotations
 
 import enum
 import tempfile
+from collections.abc import Mapping
 from dataclasses import dataclass, field, replace
 from os import getenv
 from pathlib import Path
 
+import pandas as pd
 from beartype import beartype
-from hstd_py_lib.external_packages.rich_utils import render_rich
-from hstd_py_lib.external_packages.sqlalchemy_utils import format_db_all
+from hstd_py_lib.external_packages.pandas_utils import dataframe_dict_to_table_dict
+from hstd_py_lib.external_packages.rich_utils import dict_of_tables_to_group, render_rich
+from hstd_py_lib.external_packages.sqlalchemy_utils import (
+    database_engine_scope,
+    load_database_as_dataframe_structure,
+)
 from loguru import logger
 from plumbum import local
 from sqlalchemy import insert, select
@@ -87,10 +93,10 @@ class Occurrence:
 class LoweredProgram:
     occurrences: dict[int, Occurrence] = field(default_factory=dict)
 
-    input_database: db.InputDatabase | None = None
+    input_database: Mapping[str, pd.DataFrame] | None = None
     """Optional dataframe snapshot; never used to execute the checker."""
 
-    output_database: db.OutputDatabase | None = None
+    output_database: Mapping[str, pd.DataFrame] | None = None
     """Optional dataframe snapshot captured before temporary files are removed."""
 
 
@@ -589,7 +595,7 @@ def run_for_diagnostics(
         str(SQLITE_PROGRAM),
     ]()
 
-    with db.database_engine(output_database, read_only=True) as engine:
+    with database_engine_scope(output_database, read_only=True) as engine:
         with engine.connect() as database:
             diags = [
                 DiagRow(
@@ -634,7 +640,7 @@ def run_type_check(
             souffle_arguments(input_database, output_database),
         )
 
-        with db.database_engine(input_database) as engine:
+        with database_engine_scope(input_database) as engine:
             db.input_metadata.create_all(engine)
             with engine.begin() as database:
                 database.execute(
@@ -650,27 +656,46 @@ def run_type_check(
         )
 
         if capture_databases:
-            program.input_database = db.load_database_as_dataframe_structure(
-                input_database,
-                db.InputDatabase,
+            program.input_database = load_database_as_dataframe_structure(
+                database_path=input_database,
+                schema=db.input_metadata,
+                ignored_tables={
+                    "input_prim_text",
+                    "serde_schema",
+                    "input_prim_class",
+                    # builtin facts, no utility in repeatedly printing them
+                    db.InputClassText.__tablename__,
+                    db.InputOpBindsElem.__tablename__,
+                    db.InputOpBinary.__tablename__,
+                    db.InputNumericJoin.__tablename__,
+                },
             )
-            program.output_database = db.load_database_as_dataframe_structure(
-                output_database,
-                db.OutputDatabase,
+            program.output_database = load_database_as_dataframe_structure(
+                database_path=output_database,
+                schema=db.output_metadata,
             )
 
         debug_path = getenv("HSTD_STABLE_TEST_DIR_PATH")
         if debug_path:
             debug_directory = Path(debug_path)
             debug_directory.mkdir(parents=True, exist_ok=True)
-            debug_directory.joinpath("input.txt").write_text(
-                format_db_all(input_database),
-                encoding="utf-8",
-            )
-            debug_directory.joinpath("output.txt").write_text(
-                format_db_all(output_database),
-                encoding="utf-8",
-            )
+
+            if capture_databases:
+                assert program.input_database
+                assert program.output_database
+
+                def write_db(relpath: str, input: Mapping[str, pd.DataFrame]):
+                    debug_directory.joinpath(relpath).write_text(
+                        render_rich(
+                            dict_of_tables_to_group(dataframe_dict_to_table_dict(input)),
+                            color=False,
+                        ),
+                        encoding="utf-8",
+                    )
+
+                write_db("input.txt", program.input_database)
+                write_db("output.txt", program.output_database)
+
             debug_directory.joinpath("schema.json").write_text(
                 schema + "\n",
                 encoding="utf-8",
@@ -713,9 +738,36 @@ def run_type_check(
             }
         )
 
+    had_db_dump = not capture_databases
+
     def warn_untyped(expr: ExprNode) -> None:
+        nonlocal had_db_dump
         if diagnostics.diags:
             return
+
+        if not had_db_dump:
+            logger.warning("Had untyped elements, input DB was")
+            logger.debug(
+                "\n"
+                + render_rich(
+                    dict_of_tables_to_group(
+                        dataframe_dict_to_table_dict(program.input_database),
+                        table_lines=[
+                            [
+                                "input_expr",
+                                "input_expr_arg",
+                                "input_expr_arg_class",
+                                "input_expr_arity",
+                                "input_expr_str",
+                                "input_expr_int",
+                            ]
+                        ],
+                    ),
+                    color=False,
+                )
+            )
+
+            had_db_dump = True
 
         if expr.typed_as is None:
             logger.warning(

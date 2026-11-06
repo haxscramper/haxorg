@@ -56,7 +56,7 @@ class OrgDiagnostics(M.Class):
 
 
 def test_example_model_main(stable_test_dir: Path):
-    M.type_check()
+    M.type_check(capture_databases=True)
 
     res = M.finalize()
 

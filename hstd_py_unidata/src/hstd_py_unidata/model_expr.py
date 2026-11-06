@@ -130,6 +130,10 @@ def to_node(value: Any) -> ExprNode:
             return make_node(OpId.CONST_FLOAT, float_val=value).node
         case str():
             return make_node(OpId.CONST_STR, str_val=value).node
+        case list():
+            return make_node(
+                OpId.LIST_INIT, args=tuple(to_node(arg) for arg in value)
+            ).node
         case _:
             raise TypeError(
                 f"Cannot convert {value!r} of type {type(value).__name__} into a DSL expression; expected Expr, bool, int, float or str"

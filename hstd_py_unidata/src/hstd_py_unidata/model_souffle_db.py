@@ -1,21 +1,11 @@
-import sqlite3
-from contextlib import contextmanager
-from dataclasses import dataclass
-from pathlib import Path
-
-import pandas as pd
 from beartype import beartype
-from beartype.typing import Annotated, ClassVar, Iterator
+from beartype.typing import Annotated
 from sqlalchemy import (
-    URL,
     Enum,
     Integer,
     MetaData,
     Text,
-    create_engine,
-    select,
 )
-from sqlalchemy.engine import Engine
 from sqlalchemy.orm import DeclarativeBase, Mapped, MappedColumn, mapped_column
 
 from hstd_py_unidata import model_ir
@@ -381,96 +371,3 @@ class SqInferredBinderType(OutputBase):
     e: Mapped[FactNumber]
     slot: Mapped[FactNumber]
     t: Mapped[model_ir.TypeRef] = adt_column(TYPE_CODEC)
-
-
-@beartype
-@dataclass(frozen=True)
-class InputDatabase:
-    """Typed dataframe snapshot of the lowering database."""
-
-    serde_schema: pd.DataFrame
-    input_record: pd.DataFrame
-    input_inherits: pd.DataFrame
-    input_field: pd.DataFrame
-    input_variant_case: pd.DataFrame
-    input_variant_kind: pd.DataFrame
-    input_enum_value: pd.DataFrame
-    input_qname_text: pd.DataFrame
-    input_prim_text: pd.DataFrame
-    input_prim_class: pd.DataFrame
-    input_class_text: pd.DataFrame
-    input_numeric_join: pd.DataFrame
-    input_op_binds_elem: pd.DataFrame
-    input_op_binary: pd.DataFrame
-    input_expr: pd.DataFrame
-    input_expr_arity: pd.DataFrame
-    input_expr_arg: pd.DataFrame
-    input_expr_str: pd.DataFrame
-    input_expr_int: pd.DataFrame
-    input_expr_type_val: pd.DataFrame
-    input_expr_flag: pd.DataFrame
-    input_binds: pd.DataFrame
-    input_var_ref: pd.DataFrame
-    input_this_type: pd.DataFrame
-    input_root: pd.DataFrame
-    input_expr_arg_class: pd.DataFrame
-    input_expr_fixed_result: pd.DataFrame
-
-    schema: ClassVar[MetaData] = input_metadata
-
-
-@beartype
-@dataclass(frozen=True)
-class OutputDatabase:
-    """Typed dataframe snapshot of the checker output database."""
-
-    sq_diag: pd.DataFrame
-    untyped: pd.DataFrame
-    sq_inferred_type: pd.DataFrame
-    sq_inferred_binder_type: pd.DataFrame
-
-    schema: ClassVar[MetaData] = output_metadata
-
-
-@contextmanager
-@beartype
-def database_engine(
-    database_path: str | Path,
-    read_only: bool = False,
-) -> Iterator[Engine]:
-    path = Path(database_path).resolve()
-
-    if read_only:
-        uri = path.as_uri() + "?mode=ro"
-        engine = create_engine(
-            "sqlite+pysqlite://",
-            creator=lambda: sqlite3.connect(uri, uri=True),
-        )
-    else:
-        engine = create_engine(URL.create("sqlite+pysqlite", database=str(path)))
-
-    try:
-        yield engine
-    finally:
-        engine.dispose()
-
-
-@beartype
-def load_database_as_dataframe_structure[T: InputDatabase | OutputDatabase](
-    database_path: str | Path,
-    dataclass_type: type[T],
-) -> T:
-    """Read typed selections so dataframe cells contain decoded ADT values."""
-
-    with database_engine(database_path, read_only=True) as engine:
-        with engine.connect() as connection:
-            dataframes = {
-                table.name: pd.read_sql_query(
-                    select(table),
-                    connection,
-                    coerce_float=False,
-                )
-                for table in dataclass_type.schema.sorted_tables
-            }
-
-    return dataclass_type(**dataframes)

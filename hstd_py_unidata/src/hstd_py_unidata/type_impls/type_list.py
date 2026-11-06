@@ -111,3 +111,20 @@ class ListEmptyOp(Operator):
 
     def evaluate(self, host: EvalHost, node: ExprNode, env: Env) -> Value:
         return ListValue(items=())
+
+
+class ListInitOp(Operator):
+    op_id = OpId.LIST_INIT
+    roles = ("list", "start", "end")
+    rest_classes = (TypeClass.ANY,)
+    rest_role = "operand"
+
+    def render(self, node: ExprNode, args: List[str]) -> str:
+        return f"{args[0]}._List.init({', '.join(args)})"
+
+    def evaluate(self, host: EvalHost, node: ExprNode, env: Env) -> Value:
+        result = list()
+        for it in node.args:
+            result.append(host.eval(it, env))
+
+        return ListValue(items=tuple(result))

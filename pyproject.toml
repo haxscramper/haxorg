@@ -20,7 +20,7 @@ hstd_py_unidata = { workspace = true }
 [dependency-groups]
 dev = [
   "mypy>=1.18.2",
-  "pytest>=8.4.2",
+  "pytest>=9",
   "ruff>=0.13.2",
   "conan==2.34.0",
 ]
@@ -68,6 +68,9 @@ ignore = [
   "UP045",
   "SIM117", # combine `with`
   "UP006", # List -> list
+  "B006", # no, I don't want to write endless boilerplate slop around
+         # every single function argument that is a list, tuple, set, dict
+         # etc.
 ]
 
 [tool.ruff.format]

@@ -15,6 +15,7 @@
 .decl op_binds_elem(op: OpId)
 .decl op_binary(op: OpId)
 
+// documentation comment for expr
 .decl expr(e: ExprId, op: OpId)
 .decl expr_arity(e: ExprId, arity: ArgIndex)
 .decl expr_arg(e: ExprId, idx: ArgIndex, arg: ExprId)
@@ -113,8 +114,15 @@ ordered_operands(E) :-
     has_class(A, $CString()),
     has_class(B, $CString()).
 
-expr_type(E, $TPrim($PBool())) :- expr(E, Op), (Op = "eq" ; Op = "ne"), compatible_operands(E).
-expr_type(E, $TPrim($PBool())) :- expr(E, Op), (Op = "lt" ; Op = "le"), ordered_operands(E).
+expr_type(E, $TPrim($PBool())) :-
+    expr(E, Op),
+    (Op = "eq" ; Op = "ne"),
+    compatible_operands(E).
+
+expr_type(E, $TPrim($PBool())) :-
+    expr(E, Op),
+    (Op = "lt" ; Op = "le"),
+    ordered_operands(E).
 
 expr_type(E, $TPrim(R)) :-
     expr(E, Op),
@@ -122,6 +130,7 @@ expr_type(E, $TPrim(R)) :-
     operand(E, 0, $TPrim(P1)),
     operand(E, 1, $TPrim(P2)),
     numeric_join(P1, P2, R).
+
 expr_type(E, $TPrim($PString())) :-
     expr(E, "add"),
     operand(E, 0, $TPrim($PString())),
@@ -133,28 +142,63 @@ expr_type(E, T) :-
     operand(E, 1, T),
     operand(E, 2, T).
 
-binder_type(B, T) :- expr(E, "let"), binds(E, 0, B), operand(E, 0, T).
-expr_type(E, T) :- expr(E, "let"), operand(E, 1, T).
+binder_type(B, T) :-
+    expr(E, "let"),
+    binds(E, 0, B),
+    operand(E, 0, T).
 
-binder_type(B, T) :- expr(E, Op), op_binds_elem(Op), binds(E, 0, B), coll_elem(E, T).
+expr_type(E, T) :-
+    expr(E, "let"),
+    operand(E, 1, T).
+
+binder_type(B, T) :-
+    expr(E, Op),
+    op_binds_elem(Op),
+    binds(E, 0, B),
+    coll_elem(E, T).
 
 expr_type(E, $TPrim($PBool())) :-
     expr(E, Op),
     (Op = "all" ; Op = "exists" ; Op = "exists_one"),
     coll_elem(E, _),
     operand(E, 1, $TPrim($PBool())).
-expr_type(E, $TList(T)) :- expr(E, "map"), coll_elem(E, _), operand(E, 1, T).
+
+expr_type(E, $TList(T)) :-
+    expr(E, "map"),
+    coll_elem(E, _),
+    operand(E, 1, T).
+
 expr_type(E, $TList(T)) :-
     expr(E, Op),
     (Op = "filter" ; Op = "take_while"),
     coll_elem(E, T),
     operand(E, 1, $TPrim($PBool())).
-expr_type(E, $TList(T)) :- expr(E, "filter_map"), coll_elem(E, _), operand(E, 1, $TOpt(T)).
-expr_type(E, $TMap(K, $TList(T))) :- expr(E, "group_by"), coll_elem(E, T), operand(E, 1, K).
 
-binder_type(B, T) :- expr(E, "fold"), binds(E, 0, B), operand(E, 1, T).
-binder_type(B, T) :- expr(E, "fold"), binds(E, 1, B), coll_elem(E, T).
-expr_type(E, T) :- expr(E, "fold"), coll_elem(E, _), operand(E, 1, T), operand(E, 2, T).
+expr_type(E, $TList(T)) :-
+    expr(E, "filter_map"),
+    coll_elem(E, _),
+    operand(E, 1, $TOpt(T)).
+
+expr_type(E, $TMap(K, $TList(T))) :-
+    expr(E, "group_by"),
+    coll_elem(E, T),
+    operand(E, 1, K).
+
+binder_type(B, T) :-
+    expr(E, "fold"),
+    binds(E, 0, B),
+    operand(E, 1, T).
+
+binder_type(B, T) :-
+    expr(E, "fold"),
+    binds(E, 1, B),
+    coll_elem(E, T).
+
+expr_type(E, T) :-
+    expr(E, "fold"),
+    coll_elem(E, _),
+    operand(E, 1, T),
+    operand(E, 2, T).
 
 expr_type(E, $TList($TDyn(T))) :- expr(E, "walk"), operand(E, 0, T).
 
@@ -252,11 +296,13 @@ expr_type(E, T) :- expr(E, "type_case"), type_case_compatible(E), operand(E, 0, 
 .decl type_cond_prefix(e: ExprId, arity: ArgIndex, t: Type)
 type_cond_prefix(E, 2, T) :- expr(E, "type_cond"), operand(E, 0, _), operand(E, 1, T).
 type_cond_prefix(E, as(I + 1, ArgIndex), T) :- type_cond_prefix(E, I, T), operand(E, I, T).
+
 expr_type(E, $TOpt(T)) :-
     expr(E, "type_cond"),
     expr_flag(E, "unhandled_ignore"),
     expr_arity(E, N),
     type_cond_prefix(E, N, T).
+
 expr_type(E, T) :-
     expr(E, "type_cond"),
     !expr_flag(E, "unhandled_ignore"),

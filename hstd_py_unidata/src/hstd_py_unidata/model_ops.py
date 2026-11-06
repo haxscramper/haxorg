@@ -1129,6 +1129,7 @@ def default_operators() -> List[Operator]:
         type_list.ListSliceOp(),
         type_list.ListConcatOp(),
         type_list.ListEmptyOp(),
+        type_list.ListInitOp(),
         type_map.MapSizeOp(),
         type_map.MapContainsOp(),
         type_map.MapGetOp(),

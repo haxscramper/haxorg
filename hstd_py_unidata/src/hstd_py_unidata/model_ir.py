@@ -125,6 +125,12 @@ class TypeAnnotation(FrozenModel):
 class BaseType(FrozenModel):
     annotation: TypeAnnotation = Field(default_factory=lambda: TypeAnnotation())
 
+    def __repr_args__(self):
+        for name, value in super().__repr_args__():
+            if name == "annotation" and value == TypeAnnotation():
+                continue
+            yield name, value
+
 
 @beartype
 class PrimT(BaseType):
@@ -313,6 +319,7 @@ class OpId(enum.StrEnum):
     LIST_SLICE = "list_slice"
     LIST_CONCAT = "list_concat"
     LIST_EMPTY = "list_empty"
+    LIST_INIT = "list_init"
     MAP_SIZE = "map_size"
     MAP_CONTAINS = "map_contains"
     MAP_GET = "map_get"
