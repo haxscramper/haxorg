@@ -5,6 +5,14 @@ from pathlib import Path
 from typing import Any
 
 
+def _log(message: str) -> None:
+    print(
+        f"[hatch-deploy] {message}",
+        file=sys.stderr,
+        flush=True,
+    )
+
+
 def _select_file(
     directories: list[Path],
     pattern: str,
@@ -12,6 +20,8 @@ def _select_file(
     recursive: bool = False,
 ) -> Path:
     matches: set[Path] = set()
+
+    _log(f"pattern={pattern} directories={directories}")
 
     for directory in directories:
         paths = directory.rglob(pattern) if recursive else directory.glob(pattern)

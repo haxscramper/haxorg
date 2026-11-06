@@ -19,7 +19,7 @@ dev = [
 ]
 
 [build-system]
-requires = ["hatchling>=1.27"]
+requires = ["hatchling>=1.27", "hstd_py_lib",]
 build-backend = "hatchling.build"
 
 [tool.hatch.build.targets.wheel]
@@ -33,3 +33,12 @@ include = [
   "/tests",
   "/pyproject.toml",
 ]
+
+[tool.hatch.build.hooks.conan]
+reference = "hstd_cpp_souffle_serde/0.1.0"
+editable-root = "src"
+
+[[tool.hatch.build.hooks.conan.artifacts]]
+artifact = "libhstd_cpp_souffle_serde.so"
+package_type = "shared-library"
+destination = "hstd_py_unidata"

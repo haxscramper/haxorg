@@ -157,6 +157,7 @@ class ConanBuildHook(BuildHookInterface):
         force_include[str(source)] = destination.as_posix()
 
         if version != "editable":
+            self._log("current version is not editable, skipping copy")
             return
 
         editable_root = Path(self.config.get("editable-root", "src"))

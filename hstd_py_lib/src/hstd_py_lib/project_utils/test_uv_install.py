@@ -31,7 +31,7 @@ TEST_UV_INSTALL_FLAGS = json.loads(os.getenv("HSTD_PY_TEST_UV_INSTALL_UV_FLAGS",
 DRIVER_FLAGS = json.loads(os.getenv("HSTD_PY_TEST_UV_INSTALL_DRIVER_FLAGS", "[]"))
 
 _VERBOSE = "--verbose" in DRIVER_FLAGS
-_VERBOSE_PYTEST = "--verbose-pytest" in DRIVER_FLAGS
+_VERBOSE_PYTEST = "--verbose-pytest" in DRIVER_FLAGS or _VERBOSE
 
 
 def run(

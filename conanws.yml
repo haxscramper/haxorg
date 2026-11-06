@@ -58,3 +58,7 @@ packages:
   - path: haxdex_read_code_cpp_common
     ref: haxdex_read_code_cpp_common/0.1.0
     output_folder: build/conan_build/haxdex_read_code_cpp_common
+
+  - path: hstd_cpp_souffle_serde
+    ref: hstd_cpp_souffle_serde/0.1.0
+    output_folder: build/conan_build/hstd_cpp_souffle_serde

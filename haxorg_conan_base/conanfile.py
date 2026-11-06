@@ -36,6 +36,7 @@ class HaxorgPackage(_HaxorgTypingBase):
     # Expected build outputs. Used only for validation, not packaging or lookup.
     # Applications must declare a nonempty list.
     provided_binaries: list[str] | None = None
+    provided_libraries: list[str] | None = None
 
     # File names in `cmake/` exported to consumers as CMake build modules.
     haxorg_cmake_build_modules: tuple[str, ...] = ()
@@ -90,6 +91,14 @@ class HaxorgPackage(_HaxorgTypingBase):
         return [
             (Path(self.build_folder) / directory).resolve()
             for directory in self.cpp.build.bindirs
+        ]
+
+    @property
+    def haxorg_library_directories(self) -> list[Path]:
+        assert self.build_folder
+        return [
+            (Path(self.build_folder) / directory).resolve()
+            for directory in self.cpp.build.libdirs
         ]
 
     @property
@@ -304,7 +313,10 @@ class HaxorgPackage(_HaxorgTypingBase):
             )
         )
 
-        self.haxorg_validate_provided_binaries()
+        if self.haxorg_is_application:
+            self.haxorg_validate_provided_binaries()
+        else:
+            self.haxorg_validate_provided_libraries()
 
         if self.haxorg_run_tests and can_run(self):
             environment = VirtualRunEnv(self).environment()
@@ -392,6 +404,27 @@ class HaxorgPackage(_HaxorgTypingBase):
                 )
 
         self.haxorg_package_info()
+
+    def haxorg_validate_provided_libraries(self):
+        if self.provided_libraries is None:
+            return
+
+        def lib_is_present(name: str, directory: Path) -> bool:
+            return directory.joinpath(name).is_file()
+
+        directories = self.haxorg_library_directories
+        missing = [
+            binary
+            for binary in self.provided_libraries
+            if not any(lib_is_present(binary, directory) for directory in directories)
+        ]
+
+        if missing:
+            searched = ", ".join(str(directory) for directory in directories)
+            raise ConanException(
+                f"{self.name}: missing provided libraries: {', '.join(missing)}; "
+                f"searched: {searched}"
+            )
 
     def haxorg_validate_provided_binaries(self):
         if self.provided_binaries is None:

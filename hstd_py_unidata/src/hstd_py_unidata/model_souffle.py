@@ -50,6 +50,7 @@ from hstd_py_unidata.model_ops import (
     Operator,
     TypeClass,
 )
+from hstd_py_unidata.souffle_path import get_serde_library_path
 
 RULES_DIR = Path(__file__).parent
 
@@ -926,6 +927,9 @@ def run_type_check(
 ) -> TypeCheckOutput:
     """Run the SQLite-backed type checker and rewrite expression annotations."""
     program = Lowering(index, table).lower()
+
+    path = get_serde_library_path()
+    assert path.exists(), str(path)
 
     with tempfile.TemporaryDirectory() as temporary:
         directory = Path(temporary)
