@@ -5,57 +5,26 @@ import json
 import re
 from dataclasses import dataclass, field
 from pathlib import Path
+from types import UnionType
 
 from beartype import beartype
-from beartype.typing import cast
+from beartype.typing import (
+    Annotated,
+    Any,
+    Callable,
+    Iterable,
+    Literal,
+    TypeAliasType,
+    Union,
+    cast,
+    get_args,
+    get_origin,
+)
 from plumbum import local
-from pydantic import TypeAdapter
+from pydantic import BaseModel, TypeAdapter
 from sqlalchemy import Text
 from sqlalchemy.engine import Dialect
 from sqlalchemy.types import TypeDecorator
-
-from hstd_py_unidata.model_ir import (
-    ArrayT,
-    DynT,
-    ExternalT,
-    ListT,
-    MapT,
-    NamedT,
-    OptT,
-    PrimKind,
-    PrimT,
-    QName,
-    TupleT,
-    TypeParamT,
-    TypeRef,
-    UnresolvedT,
-    VariantT,
-)
-from hstd_py_unidata.model_ops import TYPE_CLASS_CONSTRUCTORS, TypeClass
-
-PRIM_CONSTRUCTORS: dict[PrimKind, str] = {
-    PrimKind.INT8: "PInt8",
-    PrimKind.INT16: "PInt16",
-    PrimKind.INT32: "PInt32",
-    PrimKind.INT64: "PInt64",
-    PrimKind.UINT8: "PUInt8",
-    PrimKind.UINT16: "PUInt16",
-    PrimKind.UINT32: "PUInt32",
-    PrimKind.UINT64: "PUInt64",
-    PrimKind.FLOAT32: "PFloat32",
-    PrimKind.FLOAT64: "PFloat64",
-    PrimKind.STRING: "PString",
-    PrimKind.BOOL: "PBool",
-    PrimKind.ANY: "PAny",
-    PrimKind.NONE: "PNone",
-    PrimKind.PATH: "PPath",
-}
-
-CONSTRUCTOR_PRIMS = {value: key for key, value in PRIM_CONSTRUCTORS.items()}
-CONSTRUCTOR_CLASSES = {value: key for key, value in TYPE_CLASS_CONSTRUCTORS.items()}
-
-type DiagnosticDetail = str | TypeRef | TypeClass | None
-type DatabaseValue = TypeRef | QName | PrimKind | TypeClass | str | None
 
 
 @beartype
@@ -67,314 +36,643 @@ class AdtValue:
     fields: dict[str, AdtValue | str | int] = field(default_factory=dict)
 
 
-ADT_ADAPTER = TypeAdapter(AdtValue)
+type WireValue = AdtValue | str | int
 
-
-class AdtRoot(enum.StrEnum):
-    TYPE = "DbType"
-    QNAME = "DbQName"
-    PRIM = "DbPrim"
-    CLASS = "DbClass"
-    DIAGNOSTIC_DETAIL = "DbDiagnosticDetail"
-    OPTIONAL_TYPE = "DbOptionalType"
+WIRE_ADAPTER = TypeAdapter(AdtValue)
 
 
 @beartype
-def adt(head: str, /, **fields: AdtValue | str | int) -> AdtValue:
-    return AdtValue(head=head, fields=fields)
+@dataclass(frozen=True)
+class OptionalShape:
+    """Represent an optional value using absent and present constructors."""
+
+    absent: str
+    present: str
+    value_field: str = "value"
 
 
 @beartype
-def nested_value(value: AdtValue, name: str) -> AdtValue:
-    result = value.fields[name]
-    if not isinstance(result, AdtValue):
+@dataclass(frozen=True)
+class SequenceShape:
+    """Represent a variadic tuple using a recursive constructor list."""
+
+    empty: str
+    cons: str
+    head_field: str = "head"
+    tail_field: str = "tail"
+
+
+@beartype
+@dataclass(frozen=True)
+class UnionVariant:
+    """Associate a Python type with a union's wrapper constructor."""
+
+    target: Any
+    head: str
+    value_field: str | None = "value"
+
+
+@beartype
+@dataclass(frozen=True)
+class UnionShape:
+    """Represent union alternatives using explicit wrapper constructors."""
+
+    variants: tuple[UnionVariant, ...]
+
+
+@beartype
+@dataclass(frozen=True)
+class CustomShape:
+    """Override both conversion directions for a representation."""
+
+    encode: Callable[[object], WireValue]
+    decode: Callable[[WireValue], object]
+
+
+type ValueShape = OptionalShape | SequenceShape | UnionShape | CustomShape
+
+
+@beartype
+def resolve_annotation(annotation: Any) -> Any:
+    while True:
+        match annotation:
+            case TypeAliasType():
+                annotation = annotation.__value__
+            case _ if get_origin(annotation) is Annotated:
+                annotation = get_args(annotation)[0]
+            case _:
+                return annotation
+
+
+@beartype
+def expect_adt(value: WireValue, context: str) -> AdtValue:
+    if not isinstance(value, AdtValue):
         raise TypeError(
-            f"Constructor {value.head!r}, field {name!r}: expected a nested "
-            f"ADT value, got {result!r}"
+            f"Cannot decode {context}: expected a named ADT constructor, got {value!r}"
         )
-    return result
+
+    return value
 
 
 @beartype
-def text_value(value: AdtValue, name: str) -> str:
-    result = value.fields[name]
-    if not isinstance(result, str):
-        raise TypeError(
-            f"Constructor {value.head!r}, field {name!r}: expected a string, "
-            f"got {result!r}"
-        )
-    return result
+def expect_fields(value: AdtValue, expected: Iterable[str]) -> None:
+    expected_names = set(expected)
+    actual_names = set(value.fields)
 
-
-@beartype
-def number_value(value: AdtValue, name: str) -> int:
-    result = value.fields[name]
-    if type(result) is not int:
-        raise TypeError(
-            f"Constructor {value.head!r}, field {name!r}: expected an integer, "
-            f"got {result!r}"
-        )
-    return result
-
-
-@beartype
-def qname_to_adt(value: QName) -> AdtValue:
-    scope = (
-        adt("NoScope")
-        if value.scope is None
-        else adt("SomeScope", value=qname_to_adt(value.scope))
-    )
-    return adt("QNameValue", name=value.name, scope=scope)
-
-
-@beartype
-def qname_from_adt(value: AdtValue) -> QName:
-    if value.head != "QNameValue":
+    if actual_names != expected_names:
         raise ValueError(
-            f"Cannot reconstruct QName from constructor {value.head!r}; "
-            "expected 'QNameValue'"
+            f"Cannot decode constructor {value.head!r}: "
+            f"missing fields {sorted(expected_names - actual_names)!r}; "
+            f"unexpected fields {sorted(actual_names - expected_names)!r}; "
+            f"expected fields {sorted(expected_names)!r}"
         )
 
-    scope = nested_value(value, "scope")
-    match scope.head:
-        case "NoScope":
-            enclosing = None
-        case "SomeScope":
-            enclosing = qname_from_adt(nested_value(scope, "value"))
-        case _:
-            raise ValueError(
-                f"Cannot reconstruct scope of QName {value!r}: expected "
-                f"'NoScope' or 'SomeScope', got {scope.head!r}"
-            )
 
-    return QName(name=text_value(value, "name"), scope=enclosing)
+@beartype
+@dataclass(frozen=True)
+class ModelConstructor:
+    """Associate a constructor with a model and explicitly omitted fields."""
+
+    head: str
+    model: type[BaseModel]
+    omit: frozenset[str] = frozenset()
+
+    def field_names(self) -> tuple[str, ...]:
+        names: list[str] = []
+
+        for name, info in self.model.model_fields.items():
+            if name in self.omit:
+                continue
+
+            annotation = resolve_annotation(info.annotation)
+            if (
+                get_origin(annotation) is Literal
+                and len(get_args(annotation)) == 1
+                and not info.is_required()
+                and info.default == get_args(annotation)[0]
+            ):
+                continue
+
+            names.append(name)
+
+        return tuple(names)
 
 
 @beartype
-def type_to_adt(value: TypeRef) -> AdtValue:
-    match value:
-        case PrimT():
-            return adt("TPrim", prim=adt(PRIM_CONSTRUCTORS[value.prim]))
-        case ListT():
-            return adt("TList", elem=type_to_adt(value.elem))
-        case ArrayT():
-            return adt("TArray", elem=type_to_adt(value.elem), size=value.size)
-        case MapT():
-            return adt(
-                "TMap",
-                key=type_to_adt(value.key),
-                value=type_to_adt(value.value),
-            )
-        case OptT():
-            return adt("TOpt", elem=type_to_adt(value.elem))
-        case TupleT():
-            elems = adt("TNil")
-            for element in reversed(value.elems):
-                elems = adt("TCons", head=type_to_adt(element), tail=elems)
-            return adt("TTuple", elems=elems)
-        case NamedT():
-            return adt("TNamed", qname=qname_to_adt(value.qname))
-        case ExternalT():
-            return adt(
-                "TExternal",
-                package=value.package,
-                qname=qname_to_adt(value.qname),
-            )
-        case VariantT():
-            return adt(
-                "TVariant",
-                owner=qname_to_adt(value.owner),
-                field=value.field,
-            )
-        case DynT():
-            return adt("TDyn", root=type_to_adt(value.root))
-        case TypeParamT():
-            return adt("TParam", name=value.name)
-        case UnresolvedT():
-            raise ValueError(
-                f"Cannot encode unresolved type {value.text!r}: model types "
-                "must be resolved before lowering to Soufflé"
-            )
-        case _:
-            raise TypeError(f"Cannot encode unsupported type reference {value!r}")
+@dataclass(frozen=True, eq=False)
+class AdtRegistry:
+    """Infer model conversions from constructor registrations and field annotations."""
 
+    models: tuple[ModelConstructor, ...]
+    enums: tuple[tuple[enum.Enum, str], ...]
+    field_shapes: dict[tuple[type[BaseModel], str], ValueShape] = field(
+        default_factory=dict
+    )
 
-@beartype
-def type_from_adt(value: AdtValue) -> TypeRef:
-    match value.head:
-        case "TPrim":
-            prim = nested_value(value, "prim")
-            return PrimT(prim=CONSTRUCTOR_PRIMS[prim.head])
-        case "TList":
-            return ListT(elem=type_from_adt(nested_value(value, "elem")))
-        case "TArray":
-            return ArrayT(
-                elem=type_from_adt(nested_value(value, "elem")),
-                size=number_value(value, "size"),
-            )
-        case "TMap":
-            return MapT(
-                key=type_from_adt(nested_value(value, "key")),
-                value=type_from_adt(nested_value(value, "value")),
-            )
-        case "TOpt":
-            return OptT(elem=type_from_adt(nested_value(value, "elem")))
-        case "TTuple":
-            elements: list[TypeRef] = []
-            remaining = nested_value(value, "elems")
-            while remaining.head == "TCons":
-                elements.append(type_from_adt(nested_value(remaining, "head")))
-                remaining = nested_value(remaining, "tail")
+    models_by_type: dict[type[BaseModel], ModelConstructor] = field(
+        init=False,
+        repr=False,
+        default_factory=dict,
+    )
+    enum_heads: dict[str, enum.Enum] = field(
+        init=False,
+        repr=False,
+        default_factory=dict,
+    )
+    enum_values: dict[type[enum.Enum], dict[enum.Enum, str]] = field(
+        init=False,
+        repr=False,
+        default_factory=dict,
+    )
 
-            if remaining.head != "TNil":
+    def __post_init__(self) -> None:
+        heads: dict[str, str] = {}
+
+        for constructor in self.models:
+            if constructor.model in self.models_by_type:
+                previous = self.models_by_type[constructor.model]
                 raise ValueError(
-                    f"Cannot reconstruct tuple {value!r}: its element list "
-                    f"terminates with {remaining.head!r}, expected 'TNil'"
+                    f"Cannot register model {constructor.model.__name__!r} "
+                    f"for constructor {constructor.head!r}: it is already "
+                    f"registered for {previous.head!r}"
                 )
 
-            return TupleT(elems=tuple(elements))
-        case "TNamed":
-            return NamedT(qname=qname_from_adt(nested_value(value, "qname")))
-        case "TExternal":
-            return ExternalT(
-                package=text_value(value, "package"),
-                qname=qname_from_adt(nested_value(value, "qname")),
+            if constructor.head in heads:
+                raise ValueError(
+                    f"Cannot register constructor {constructor.head!r} "
+                    f"for model {constructor.model.__name__!r}: "
+                    f"that constructor already represents {heads[constructor.head]}"
+                )
+
+            unknown = constructor.omit - constructor.model.model_fields.keys()
+            if unknown:
+                raise ValueError(
+                    f"Cannot register model {constructor.model.__name__!r}: "
+                    f"omitted fields {sorted(unknown)!r} do not exist"
+                )
+
+            heads[constructor.head] = constructor.model.__name__
+            self.models_by_type[constructor.model] = constructor
+
+        for value, head in self.enums:
+            if head in heads:
+                raise ValueError(
+                    f"Cannot register enum value {value!r} for constructor "
+                    f"{head!r}: that constructor already represents {heads[head]}"
+                )
+
+            members = self.enum_values.setdefault(type(value), {})
+            if value in members:
+                raise ValueError(
+                    f"Cannot register enum value {value!r} for constructor "
+                    f"{head!r}: it is already registered for {members[value]!r}"
+                )
+
+            heads[head] = repr(value)
+            self.enum_heads[head] = value
+            members[value] = head
+
+        for model, name in self.field_shapes:
+            if model not in self.models_by_type:
+                raise ValueError(
+                    f"Cannot configure representation for "
+                    f"{model.__name__}.{name}: the model has no ADT constructor"
+                )
+
+            constructor = self.models_by_type[model]
+            if name not in constructor.field_names():
+                raise ValueError(
+                    f"Cannot configure representation for "
+                    f"{model.__name__}.{name}: the field does not exist "
+                    "or is omitted from its ADT constructor"
+                )
+
+    def matches(self, annotation: Any, value: object) -> bool:
+        target = resolve_annotation(annotation)
+        origin = get_origin(target)
+
+        if origin in (Union, UnionType):
+            return any(self.matches(item, value) for item in get_args(target))
+
+        match target:
+            case _ if target is type(None):
+                return value is None
+            case _ if target is str:
+                return type(value) is str
+            case _ if target is int:
+                return type(value) is int
+            case _ if origin is tuple:
+                return isinstance(value, tuple)
+            case _ if isinstance(target, type):
+                return isinstance(value, target)
+            case _:
+                return False
+
+    def can_decode(self, annotation: Any, value: WireValue) -> bool:
+        target = resolve_annotation(annotation)
+        origin = get_origin(target)
+
+        if origin in (Union, UnionType):
+            return any(self.can_decode(item, value) for item in get_args(target))
+
+        match value:
+            case AdtValue():
+                if target in self.models_by_type:
+                    return self.models_by_type[target].head == value.head
+
+                member = self.enum_heads.get(value.head)
+                return member is not None and type(member) is target
+
+            case str():
+                return target is str
+
+            case int():
+                return target is int and type(value) is int
+
+            case _:
+                return False
+
+    def sequence_element(self, annotation: Any) -> Any:
+        target = resolve_annotation(annotation)
+        arguments = get_args(target)
+
+        if (
+            get_origin(target) is not tuple
+            or len(arguments) != 2
+            or arguments[1] is not Ellipsis
+        ):
+            raise TypeError(
+                f"Cannot apply a linked sequence representation to "
+                f"{annotation!r}: expected tuple[ElementType, ...]"
             )
-        case "TVariant":
-            return VariantT(
-                owner=qname_from_adt(nested_value(value, "owner")),
-                field=text_value(value, "field"),
-            )
-        case "TDyn":
-            return DynT(root=type_from_adt(nested_value(value, "root")))
-        case "TParam":
-            return TypeParamT(name=text_value(value, "name"))
-        case _:
-            raise ValueError(
-                f"Cannot reconstruct TypeRef from constructor {value.head!r}: "
-                "the constructor is not part of the model Type ADT"
-            )
+
+        return arguments[0]
+
+    def encode(
+        self,
+        annotation: Any,
+        value: object,
+        shape: ValueShape | None = None,
+    ) -> WireValue:
+        match shape:
+            case CustomShape():
+                return shape.encode(value)
+
+            case OptionalShape():
+                if value is None:
+                    return AdtValue(shape.absent)
+
+                return AdtValue(
+                    shape.present,
+                    {shape.value_field: self.encode(annotation, value)},
+                )
+
+            case SequenceShape():
+                element = self.sequence_element(annotation)
+                if not isinstance(value, tuple):
+                    raise TypeError(
+                        f"Cannot encode {value!r} as {annotation!r}: "
+                        "the linked sequence representation requires a tuple"
+                    )
+
+                result = AdtValue(shape.empty)
+                for item in reversed(value):
+                    result = AdtValue(
+                        shape.cons,
+                        {
+                            shape.head_field: self.encode(element, item),
+                            shape.tail_field: result,
+                        },
+                    )
+
+                return result
+
+            case UnionShape():
+                variants = [
+                    variant
+                    for variant in shape.variants
+                    if self.matches(variant.target, value)
+                ]
+
+                if len(variants) != 1:
+                    raise ValueError(
+                        f"Cannot encode {value!r} as {annotation!r}: expected "
+                        "exactly one matching union constructor, "
+                        f"got {[variant.head for variant in variants]!r}"
+                    )
+
+                variant = variants[0]
+                if variant.value_field is None:
+                    return AdtValue(variant.head)
+
+                return AdtValue(
+                    variant.head,
+                    {
+                        variant.value_field: self.encode(
+                            variant.target,
+                            value,
+                        )
+                    },
+                )
+
+            case None:
+                pass
+
+        target = resolve_annotation(annotation)
+
+        if get_origin(target) in (Union, UnionType):
+            alternatives = [
+                item for item in get_args(target) if self.matches(item, value)
+            ]
+
+            if len(alternatives) != 1:
+                raise ValueError(
+                    f"Cannot encode {value!r} as {annotation!r}: expected "
+                    "exactly one matching Python union alternative, "
+                    f"got {alternatives!r}"
+                )
+
+            return self.encode(alternatives[0], value)
+
+        match value:
+            case BaseModel():
+                constructor = self.models_by_type.get(type(value))
+                if constructor is None:
+                    raise ValueError(
+                        f"Cannot encode model {type(value).__name__!r} "
+                        f"as {annotation!r}: no ADT constructor is registered"
+                    )
+
+                fields: dict[str, WireValue] = {}
+                for name in constructor.field_names():
+                    info = constructor.model.model_fields[name]
+                    fields[name] = self.encode(
+                        info.annotation,
+                        getattr(value, name),
+                        self.field_shapes.get((constructor.model, name)),
+                    )
+
+                return AdtValue(constructor.head, fields)
+
+            case enum.Enum():
+                members = self.enum_values.get(type(value), {})
+                if value not in members:
+                    raise ValueError(
+                        f"Cannot encode enum value {value!r}: no ADT "
+                        f"constructor is registered for that member"
+                    )
+
+                return AdtValue(members[value])
+
+            case str():
+                return value
+
+            case int() if type(value) is int:
+                return value
+
+            case _:
+                raise TypeError(
+                    f"Cannot encode {value!r} as {annotation!r}: no ADT "
+                    "constructor or representation is registered"
+                )
+
+    def decode(
+        self,
+        annotation: Any,
+        value: WireValue,
+        shape: ValueShape | None = None,
+    ) -> object:
+        match shape:
+            case CustomShape():
+                return shape.decode(value)
+
+            case OptionalShape():
+                wire = expect_adt(value, repr(annotation))
+
+                match wire.head:
+                    case head if head == shape.absent:
+                        expect_fields(wire, ())
+                        return None
+
+                    case head if head == shape.present:
+                        expect_fields(wire, (shape.value_field,))
+                        return self.decode(
+                            annotation,
+                            wire.fields[shape.value_field],
+                        )
+
+                    case _:
+                        raise ValueError(
+                            f"Cannot decode constructor {wire.head!r} "
+                            f"as {annotation!r}: expected "
+                            f"{shape.absent!r} or {shape.present!r}"
+                        )
+
+            case SequenceShape():
+                element = self.sequence_element(annotation)
+                remaining = expect_adt(value, repr(annotation))
+                elements: list[object] = []
+
+                while remaining.head == shape.cons:
+                    expect_fields(
+                        remaining,
+                        (shape.head_field, shape.tail_field),
+                    )
+                    elements.append(
+                        self.decode(
+                            element,
+                            remaining.fields[shape.head_field],
+                        )
+                    )
+                    remaining = expect_adt(
+                        remaining.fields[shape.tail_field],
+                        f"tail of constructor {shape.cons!r}",
+                    )
+
+                if remaining.head != shape.empty:
+                    raise ValueError(
+                        f"Cannot decode linked sequence as {annotation!r}: "
+                        f"its tail uses constructor {remaining.head!r}, "
+                        f"expected {shape.cons!r} or {shape.empty!r}"
+                    )
+
+                expect_fields(remaining, ())
+                return tuple(elements)
+
+            case UnionShape():
+                wire = expect_adt(value, repr(annotation))
+                variants = [
+                    variant for variant in shape.variants if variant.head == wire.head
+                ]
+
+                if len(variants) != 1:
+                    raise ValueError(
+                        f"Cannot decode constructor {wire.head!r} "
+                        f"as {annotation!r}: expected exactly one registration "
+                        f"among {[item.head for item in shape.variants]!r}, "
+                        f"got {len(variants)}"
+                    )
+
+                variant = variants[0]
+                if variant.value_field is None:
+                    expect_fields(wire, ())
+                    return TypeAdapter(variant.target).validate_python(None)
+
+                expect_fields(wire, (variant.value_field,))
+                return self.decode(
+                    variant.target,
+                    wire.fields[variant.value_field],
+                )
+
+            case None:
+                pass
+
+        target = resolve_annotation(annotation)
+
+        if get_origin(target) in (Union, UnionType):
+            alternatives = [
+                item for item in get_args(target) if self.can_decode(item, value)
+            ]
+
+            if len(alternatives) != 1:
+                raise ValueError(
+                    f"Cannot decode {value!r} as {annotation!r}: expected "
+                    "exactly one matching union alternative, "
+                    f"got {alternatives!r}"
+                )
+
+            return self.decode(alternatives[0], value)
+
+        if target in self.models_by_type:
+            constructor = self.models_by_type[target]
+            wire = expect_adt(value, constructor.model.__name__)
+
+            if wire.head != constructor.head:
+                raise ValueError(
+                    f"Cannot decode constructor {wire.head!r} "
+                    f"as {constructor.model.__name__}: "
+                    f"expected {constructor.head!r}"
+                )
+
+            names = constructor.field_names()
+            expect_fields(wire, names)
+
+            fields: dict[str, object] = {}
+            for name in names:
+                info = constructor.model.model_fields[name]
+                fields[name] = self.decode(
+                    info.annotation,
+                    wire.fields[name],
+                    self.field_shapes.get((constructor.model, name)),
+                )
+
+            return constructor.model.model_validate(fields, by_name=True)
+
+        if isinstance(target, type) and issubclass(target, enum.Enum):
+            wire = expect_adt(value, target.__name__)
+            expect_fields(wire, ())
+
+            member = self.enum_heads.get(wire.head)
+            if member is None or type(member) is not target:
+                expected = sorted(self.enum_values.get(target, {}).values())
+                raise ValueError(
+                    f"Cannot decode constructor {wire.head!r} "
+                    f"as enum {target.__name__}: expected one of {expected!r}"
+                )
+
+            return member
+
+        match value:
+            case str() if target is str:
+                return value
+
+            case int() if target is int and type(value) is int:
+                return value
+
+            case _:
+                raise TypeError(
+                    f"Cannot decode {value!r} as {annotation!r}: no matching "
+                    "ADT constructor or representation is registered"
+                )
 
 
 @beartype
-def detail_to_adt(value: DiagnosticDetail) -> AdtValue:
-    match value:
-        case None:
-            return adt("NoDetail")
-        case TypeClass():
-            return adt(
-                "ClassDetail",
-                value=adt(TYPE_CLASS_CONSTRUCTORS[value]),
-            )
-        case str():
-            return adt("TextDetail", value=value)
-        case _:
-            return adt("TypeDetail", value=type_to_adt(value))
+@dataclass(frozen=True, eq=False)
+class AdtCodec[T]:
+    """Combine a Python type adapter with its ADT representation and envelope."""
 
+    registry: AdtRegistry
+    target: Any
+    wrapper: str
+    shape: ValueShape | None = None
+    adapter: TypeAdapter[T] = field(init=False, repr=False)
 
-@beartype
-def detail_from_adt(value: AdtValue) -> DiagnosticDetail:
-    match value.head:
-        case "NoDetail":
-            return None
-        case "TextDetail":
-            return text_value(value, "value")
-        case "TypeDetail":
-            return type_from_adt(nested_value(value, "value"))
-        case "ClassDetail":
-            return CONSTRUCTOR_CLASSES[nested_value(value, "value").head]
-        case _:
-            raise ValueError(
-                f"Cannot reconstruct diagnostic detail {value!r}: expected "
-                "'NoDetail', 'TextDetail', 'TypeDetail', or 'ClassDetail'"
-            )
-
-
-@beartype
-def encode_database_value(value: DatabaseValue, root: AdtRoot) -> AdtValue:
-    match root:
-        case AdtRoot.TYPE:
-            payload = type_to_adt(cast(TypeRef, value))
-        case AdtRoot.QNAME:
-            payload = qname_to_adt(cast(QName, value))
-        case AdtRoot.PRIM:
-            payload = adt(PRIM_CONSTRUCTORS[cast(PrimKind, value)])
-        case AdtRoot.CLASS:
-            payload = adt(TYPE_CLASS_CONSTRUCTORS[cast(TypeClass, value)])
-        case AdtRoot.DIAGNOSTIC_DETAIL:
-            payload = detail_to_adt(cast(DiagnosticDetail, value))
-        case AdtRoot.OPTIONAL_TYPE:
-            payload = (
-                adt("NoType")
-                if value is None
-                else adt("SomeType", value=type_to_adt(cast(TypeRef, value)))
-            )
-        case _:
-            raise ValueError(f"Unsupported database ADT root {root!r}")
-
-    return adt(root.value, value=payload)
-
-
-@beartype
-def decode_database_value(value: AdtValue, root: AdtRoot) -> DatabaseValue:
-    if value.head != root.value:
-        raise ValueError(
-            f"Cannot decode database ADT {value.head!r} as {root.value!r}: "
-            "the stored wrapper does not match the column adapter"
+    def __post_init__(self) -> None:
+        object.__setattr__(
+            self,
+            "adapter",
+            TypeAdapter[T](self.target),
         )
 
-    payload = nested_value(value, "value")
-    match root:
-        case AdtRoot.TYPE:
-            return type_from_adt(payload)
-        case AdtRoot.QNAME:
-            return qname_from_adt(payload)
-        case AdtRoot.PRIM:
-            return CONSTRUCTOR_PRIMS[payload.head]
-        case AdtRoot.CLASS:
-            return CONSTRUCTOR_CLASSES[payload.head]
-        case AdtRoot.DIAGNOSTIC_DETAIL:
-            return detail_from_adt(payload)
-        case AdtRoot.OPTIONAL_TYPE:
-            match payload.head:
-                case "NoType":
-                    return None
-                case "SomeType":
-                    return type_from_adt(nested_value(payload, "value"))
-                case _:
-                    raise ValueError(
-                        f"Cannot reconstruct optional type {payload!r}: "
-                        "expected 'NoType' or 'SomeType'"
-                    )
-        case _:
-            raise ValueError(f"Unsupported database ADT root {root!r}")
+    def to_adt(self, value: T) -> AdtValue:
+        validated = self.adapter.validate_python(value)
+        return AdtValue(
+            self.wrapper,
+            {
+                "value": self.registry.encode(
+                    self.target,
+                    validated,
+                    self.shape,
+                )
+            },
+        )
+
+    def from_adt(self, value: AdtValue) -> T:
+        if value.head != self.wrapper:
+            raise ValueError(
+                f"Cannot decode database constructor {value.head!r} "
+                f"as {self.target!r}: expected wrapper {self.wrapper!r}"
+            )
+
+        expect_fields(value, ("value",))
+        decoded = self.registry.decode(
+            self.target,
+            value.fields["value"],
+            self.shape,
+        )
+        return self.adapter.validate_python(decoded)
+
+    def dump_json(self, value: T) -> str:
+        return WIRE_ADAPTER.dump_json(self.to_adt(value)).decode("utf-8")
+
+    def validate_json(self, value: str) -> T:
+        return self.from_adt(WIRE_ADAPTER.validate_json(value))
 
 
 @beartype
 class AdtSql[T](TypeDecorator[T]):
-    """Translate typed Python values to the common DbValue JSON envelope."""
+    """Store values using a column-specific ADT codec."""
 
     impl = Text
     cache_ok = True
     should_evaluate_none = True
 
-    def __init__(self, root: AdtRoot) -> None:
+    def __init__(self, codec: AdtCodec[T]) -> None:
         super().__init__()
-        self.root = root
+        self.codec = codec
 
-    def process_bind_param(self, value: T, dialect: Dialect) -> str:
-        wire = encode_database_value(cast(DatabaseValue, value), self.root)
-        return ADT_ADAPTER.dump_json(wire).decode("utf-8")
+    def process_bind_param(self, value: T | None, dialect: Dialect) -> str:
+        return self.codec.dump_json(cast(T, value))
 
     def process_result_value(self, value: str | None, dialect: Dialect) -> T:
         if value is None:
             raise ValueError(
-                f"Cannot decode SQL NULL as {self.root.value}: ADT columns "
-                "store explicit constructors rather than SQL NULL"
+                f"Cannot decode SQL NULL as {self.codec.target!r}: "
+                f"wrapper {self.codec.wrapper!r} stores explicit ADT "
+                "constructors rather than SQL NULL"
             )
 
-        wire = ADT_ADAPTER.validate_json(value)
-        return cast(T, decode_database_value(wire, self.root))
+        return self.codec.validate_json(value)
 
 
 @beartype
@@ -428,7 +726,9 @@ def prepare_serde_schema(program: Path, arguments: list[str]) -> str:
                         f"{branch.group(1)!r}: attribute {attribute!r} is not "
                         "a named field with a named type"
                     )
+
                 attributes.append(match.group(1))
+
             names[branch.group(1)] = attributes
 
     for type_name, info in types["ADTs"].items():
@@ -463,12 +763,3 @@ def prepare_serde_schema(program: Path, arguments: list[str]) -> str:
         ensure_ascii=False,
         sort_keys=True,
     )
-
-
-__all__ = [
-    "AdtRoot",
-    "AdtSql",
-    "DiagnosticDetail",
-    "PRIM_CONSTRUCTORS",
-    "prepare_serde_schema",
-]

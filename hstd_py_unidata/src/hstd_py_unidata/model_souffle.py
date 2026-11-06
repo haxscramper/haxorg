@@ -46,11 +46,7 @@ from hstd_py_unidata.model_ops import (
     Operator,
     TypeClass,
 )
-from hstd_py_unidata.model_souffle_db_map import (
-    PRIM_CONSTRUCTORS,
-    DiagnosticDetail,
-    prepare_serde_schema,
-)
+from hstd_py_unidata.model_souffle_db_map import prepare_serde_schema
 from hstd_py_unidata.souffle_path import get_serde_library_path
 
 RULES_DIR = Path(__file__).parent
@@ -106,7 +102,7 @@ class DiagRow:
     code: str
     expr: int
     arg: int
-    detail: DiagnosticDetail
+    detail: db.DiagnosticDetail
     actual: TypeRef
     subject: TypeRef | None
 
@@ -232,7 +228,7 @@ class Lowering:
         return self.program
 
     def lower_builtin_facts(self) -> None:
-        for prim in PRIM_CONSTRUCTORS:
+        for prim in db.PRIM_CONSTRUCTORS:
             self.database.execute(
                 insert(db.input_prim_text),
                 {"prim": prim, "text": prim.value},
@@ -264,7 +260,7 @@ class Lowering:
 
         numeric = [
             prim
-            for prim in PRIM_CONSTRUCTORS
+            for prim in db.PRIM_CONSTRUCTORS
             if prim in INTEGER_RANGES or prim in FLOAT_PRIMS
         ]
         for left in numeric:

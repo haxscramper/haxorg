@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 import sqlite3
 from contextlib import contextmanager
 from dataclasses import dataclass
@@ -7,292 +5,430 @@ from pathlib import Path
 
 import pandas as pd
 from beartype import beartype
-from beartype.typing import ClassVar, Iterator
+from beartype.typing import Annotated, ClassVar, Iterator
 from sqlalchemy import (
     URL,
-    Column,
     Enum,
     Integer,
     MetaData,
-    Table,
     Text,
     create_engine,
     select,
 )
 from sqlalchemy.engine import Engine
+from sqlalchemy.orm import DeclarativeBase, Mapped, MappedColumn, mapped_column
 
-from hstd_py_unidata.model_ir import OpId, PrimKind, QName, TypeRef
-from hstd_py_unidata.model_ops import TypeClass
+from hstd_py_unidata import model_ir
+from hstd_py_unidata.model_ops import TYPE_CLASS_CONSTRUCTORS, TypeClass
 from hstd_py_unidata.model_souffle_db_map import (
-    AdtRoot,
+    AdtCodec,
+    AdtRegistry,
     AdtSql,
-    DiagnosticDetail,
+    ModelConstructor,
+    OptionalShape,
+    SequenceShape,
+    UnionShape,
+    UnionVariant,
 )
+
+type DiagnosticDetail = str | model_ir.TypeRef | TypeClass | None
+
+
+PRIM_CONSTRUCTORS: dict[model_ir.PrimKind, str] = {
+    model_ir.PrimKind.INT8: "PInt8",
+    model_ir.PrimKind.INT16: "PInt16",
+    model_ir.PrimKind.INT32: "PInt32",
+    model_ir.PrimKind.INT64: "PInt64",
+    model_ir.PrimKind.UINT8: "PUInt8",
+    model_ir.PrimKind.UINT16: "PUInt16",
+    model_ir.PrimKind.UINT32: "PUInt32",
+    model_ir.PrimKind.UINT64: "PUInt64",
+    model_ir.PrimKind.FLOAT32: "PFloat32",
+    model_ir.PrimKind.FLOAT64: "PFloat64",
+    model_ir.PrimKind.STRING: "PString",
+    model_ir.PrimKind.BOOL: "PBool",
+    model_ir.PrimKind.ANY: "PAny",
+    model_ir.PrimKind.NONE: "PNone",
+    model_ir.PrimKind.PATH: "PPath",
+}
+
+
+MODEL_CONSTRUCTORS: tuple[ModelConstructor, ...] = (
+    ModelConstructor("QNameValue", model_ir.QName),
+    *(
+        ModelConstructor(
+            head,
+            model,
+            omit=frozenset({"annotation"}),
+        )
+        for head, model in (
+            ("TPrim", model_ir.PrimT),
+            ("TList", model_ir.ListT),
+            ("TArray", model_ir.ArrayT),
+            ("TMap", model_ir.MapT),
+            ("TOpt", model_ir.OptT),
+            ("TTuple", model_ir.TupleT),
+            ("TNamed", model_ir.NamedT),
+            ("TExternal", model_ir.ExternalT),
+            ("TVariant", model_ir.VariantT),
+            ("TDyn", model_ir.DynT),
+            ("TParam", model_ir.TypeParamT),
+        )
+    ),
+)
+
+MODEL_ADT_REGISTRY = AdtRegistry(
+    models=MODEL_CONSTRUCTORS,
+    enums=(
+        *PRIM_CONSTRUCTORS.items(),
+        *TYPE_CLASS_CONSTRUCTORS.items(),
+    ),
+    field_shapes={
+        (model_ir.QName, "scope"): OptionalShape("NoScope", "SomeScope"),
+        (model_ir.TupleT, "elems"): SequenceShape("TNil", "TCons"),
+    },
+)
+
+TYPE_CODEC = AdtCodec[model_ir.TypeRef](MODEL_ADT_REGISTRY, model_ir.TypeRef, "DbType")
+QNAME_CODEC = AdtCodec[model_ir.QName](MODEL_ADT_REGISTRY, model_ir.QName, "DbQName")
+PRIM_CODEC = AdtCodec[model_ir.PrimKind](MODEL_ADT_REGISTRY, model_ir.PrimKind, "DbPrim")
+CLASS_CODEC = AdtCodec[TypeClass](MODEL_ADT_REGISTRY, TypeClass, "DbClass")
+DETAIL_CODEC = AdtCodec[DiagnosticDetail](
+    MODEL_ADT_REGISTRY,
+    DiagnosticDetail,
+    "DbDiagnosticDetail",
+    UnionShape(
+        (
+            UnionVariant(type(None), "NoDetail", value_field=None),
+            UnionVariant(TypeClass, "ClassDetail"),
+            UnionVariant(str, "TextDetail"),
+            UnionVariant(model_ir.TypeRef, "TypeDetail"),
+        )
+    ),
+)
+OPTIONAL_TYPE_CODEC = AdtCodec[model_ir.TypeRef | None](
+    MODEL_ADT_REGISTRY,
+    model_ir.TypeRef | None,
+    "DbOptionalType",
+    OptionalShape("NoType", "SomeType"),
+)
+
 
 input_metadata = MetaData()
 output_metadata = MetaData()
 
 
-@beartype
-def number(name: str) -> Column[int]:
-    return Column(name, Integer, nullable=False)
+class InputBase(DeclarativeBase):
+    metadata = input_metadata
 
 
-@beartype
-def text(name: str) -> Column[str]:
-    return Column(name, Text, nullable=False)
+class OutputBase(DeclarativeBase):
+    metadata = output_metadata
 
 
-@beartype
-def type_column(name: str) -> Column[TypeRef]:
-    return Column(name, AdtSql[TypeRef](AdtRoot.TYPE), nullable=False)
-
-
-@beartype
-def qname_column(name: str) -> Column[QName]:
-    return Column(name, AdtSql[QName](AdtRoot.QNAME), nullable=False)
-
-
-@beartype
-def prim_column(name: str) -> Column[PrimKind]:
-    return Column(name, AdtSql[PrimKind](AdtRoot.PRIM), nullable=False)
-
-
-@beartype
-def class_column(name: str) -> Column[TypeClass]:
-    return Column(name, AdtSql[TypeClass](AdtRoot.CLASS), nullable=False)
-
-
-@beartype
-def op_column(name: str) -> Column[OpId]:
-    return Column(
-        name,
+FactNumber = Annotated[
+    int,
+    mapped_column(Integer, primary_key=True, nullable=False),
+]
+FactText = Annotated[
+    str,
+    mapped_column(Text, primary_key=True, nullable=False),
+]
+FactOperation = Annotated[
+    model_ir.OpId,
+    mapped_column(
         Enum(
-            OpId,
+            model_ir.OpId,
             native_enum=False,
             values_callable=lambda values: [value.value for value in values],
         ),
+        primary_key=True,
+        nullable=False,
+    ),
+]
+
+
+@beartype
+def adt_column[T](codec: AdtCodec[T]) -> MappedColumn[T]:
+    return mapped_column(
+        AdtSql[T](codec),
+        primary_key=True,
         nullable=False,
     )
 
 
-serde_schema = Table(
-    "serde_schema",
-    input_metadata,
-    text("schema"),
-)
+class SerdeSchema(InputBase):
+    __tablename__ = "serde_schema"
 
-input_record = Table(
-    "input_record",
-    input_metadata,
-    qname_column("qname"),
-    text("kind"),
-)
-input_inherits = Table(
-    "input_inherits",
-    input_metadata,
-    qname_column("sub"),
-    qname_column("sup"),
-)
-input_field = Table(
-    "input_field",
-    input_metadata,
-    qname_column("qname"),
-    text("name"),
-    type_column("t"),
-)
-input_variant_case = Table(
-    "input_variant_case",
-    input_metadata,
-    qname_column("owner"),
-    text("vfield"),
-    text("tag"),
-    qname_column("case_qname"),
-)
-input_variant_kind = Table(
-    "input_variant_kind",
-    input_metadata,
-    qname_column("owner"),
-    text("vfield"),
-    qname_column("kind_enum"),
-)
-input_enum_value = Table(
-    "input_enum_value",
-    input_metadata,
-    qname_column("qname"),
-    text("name"),
-)
-input_qname_text = Table(
-    "input_qname_text",
-    input_metadata,
-    qname_column("qname"),
-    text("text"),
-)
-input_prim_text = Table(
-    "input_prim_text",
-    input_metadata,
-    prim_column("prim"),
-    text("text"),
-)
-input_prim_class = Table(
-    "input_prim_class",
-    input_metadata,
-    prim_column("prim"),
-    class_column("cls"),
-)
-input_class_text = Table(
-    "input_class_text",
-    input_metadata,
-    class_column("cls"),
-    text("text"),
-)
-input_numeric_join = Table(
-    "input_numeric_join",
-    input_metadata,
-    prim_column("left"),
-    prim_column("right"),
-    prim_column("result"),
-)
-input_op_binds_elem = Table(
-    "input_op_binds_elem",
-    input_metadata,
-    op_column("op"),
-)
-input_op_binary = Table(
-    "input_op_binary",
-    input_metadata,
-    op_column("op"),
-)
-input_expr = Table(
-    "input_expr",
-    input_metadata,
-    number("e"),
-    op_column("op"),
-)
-input_expr_arity = Table(
-    "input_expr_arity",
-    input_metadata,
-    number("e"),
-    number("arity"),
-)
-input_expr_arg = Table(
-    "input_expr_arg",
-    input_metadata,
-    number("e"),
-    number("idx"),
-    number("arg"),
-)
-input_expr_str = Table(
-    "input_expr_str",
-    input_metadata,
-    number("e"),
-    text("value"),
-)
-input_expr_int = Table(
-    "input_expr_int",
-    input_metadata,
-    number("e"),
-    number("value"),
-)
-input_expr_type_val = Table(
-    "input_expr_type_val",
-    input_metadata,
-    number("e"),
-    type_column("t"),
-)
-input_expr_flag = Table(
-    "input_expr_flag",
-    input_metadata,
-    number("e"),
-    text("flag"),
-)
-input_binds = Table(
-    "input_binds",
-    input_metadata,
-    number("e"),
-    number("slot"),
-    number("binder"),
-)
-input_var_ref = Table(
-    "input_var_ref",
-    input_metadata,
-    number("e"),
-    number("binder"),
-)
-input_this_type = Table(
-    "input_this_type",
-    input_metadata,
-    number("e"),
-    type_column("t"),
-)
-input_root = Table(
-    "input_root",
-    input_metadata,
-    number("e"),
-    type_column("expected"),
-)
-input_expr_arg_class = Table(
-    "input_expr_arg_class",
-    input_metadata,
-    number("e"),
-    number("idx"),
-    class_column("cls"),
-)
-input_expr_fixed_result = Table(
-    "input_expr_fixed_result",
-    input_metadata,
-    number("e"),
-    type_column("t"),
-)
+    schema: Mapped[FactText]
 
-sq_diag = Table(
-    "sq_diag",
-    output_metadata,
-    text("code"),
-    number("e"),
-    number("idx"),
-    Column(
-        "detail",
-        AdtSql[DiagnosticDetail](AdtRoot.DIAGNOSTIC_DETAIL),
-        nullable=False,
-    ),
-    type_column("actual"),
-    Column(
-        "subject",
-        AdtSql[TypeRef | None](AdtRoot.OPTIONAL_TYPE),
-        nullable=False,
-    ),
-)
-untyped = Table(
-    "untyped",
-    output_metadata,
-    number("e"),
-)
-typed_as = Table(
-    "typed_as",
-    output_metadata,
-    number("e"),
-    text("text"),
-)
-sq_inferred_type = Table(
-    "sq_inferred_type",
-    output_metadata,
-    number("e"),
-    type_column("t"),
-)
-sq_inferred_binder_type = Table(
-    "sq_inferred_binder_type",
-    output_metadata,
-    number("e"),
-    number("slot"),
-    type_column("t"),
-)
+
+class InputRecord(InputBase):
+    __tablename__ = "input_record"
+
+    qname: Mapped[model_ir.QName] = adt_column(QNAME_CODEC)
+    kind: Mapped[FactText]
+
+
+class InputInherits(InputBase):
+    __tablename__ = "input_inherits"
+
+    sub: Mapped[model_ir.QName] = adt_column(QNAME_CODEC)
+    sup: Mapped[model_ir.QName] = adt_column(QNAME_CODEC)
+
+
+class InputField(InputBase):
+    __tablename__ = "input_field"
+
+    qname: Mapped[model_ir.QName] = adt_column(QNAME_CODEC)
+    name: Mapped[FactText]
+    t: Mapped[model_ir.TypeRef] = adt_column(TYPE_CODEC)
+
+
+class InputVariantCase(InputBase):
+    __tablename__ = "input_variant_case"
+
+    owner: Mapped[model_ir.QName] = adt_column(QNAME_CODEC)
+    vfield: Mapped[FactText]
+    tag: Mapped[FactText]
+    case_qname: Mapped[model_ir.QName] = adt_column(QNAME_CODEC)
+
+
+class InputVariantKind(InputBase):
+    __tablename__ = "input_variant_kind"
+
+    owner: Mapped[model_ir.QName] = adt_column(QNAME_CODEC)
+    vfield: Mapped[FactText]
+    kind_enum: Mapped[model_ir.QName] = adt_column(QNAME_CODEC)
+
+
+class InputEnumValue(InputBase):
+    __tablename__ = "input_enum_value"
+
+    qname: Mapped[model_ir.QName] = adt_column(QNAME_CODEC)
+    name: Mapped[FactText]
+
+
+class InputQNameText(InputBase):
+    __tablename__ = "input_qname_text"
+
+    qname: Mapped[model_ir.QName] = adt_column(QNAME_CODEC)
+    text: Mapped[FactText]
+
+
+class InputPrimText(InputBase):
+    __tablename__ = "input_prim_text"
+
+    prim: Mapped[model_ir.PrimKind] = adt_column(PRIM_CODEC)
+    text: Mapped[FactText]
+
+
+class InputPrimClass(InputBase):
+    __tablename__ = "input_prim_class"
+
+    prim: Mapped[model_ir.PrimKind] = adt_column(PRIM_CODEC)
+    cls: Mapped[TypeClass] = adt_column(CLASS_CODEC)
+
+
+class InputClassText(InputBase):
+    __tablename__ = "input_class_text"
+
+    cls: Mapped[TypeClass] = adt_column(CLASS_CODEC)
+    text: Mapped[FactText]
+
+
+class InputNumericJoin(InputBase):
+    __tablename__ = "input_numeric_join"
+
+    left: Mapped[model_ir.PrimKind] = adt_column(PRIM_CODEC)
+    right: Mapped[model_ir.PrimKind] = adt_column(PRIM_CODEC)
+    result: Mapped[model_ir.PrimKind] = adt_column(PRIM_CODEC)
+
+
+class InputOpBindsElem(InputBase):
+    __tablename__ = "input_op_binds_elem"
+
+    op: Mapped[FactOperation]
+
+
+class InputOpBinary(InputBase):
+    __tablename__ = "input_op_binary"
+
+    op: Mapped[FactOperation]
+
+
+class InputExpr(InputBase):
+    __tablename__ = "input_expr"
+
+    e: Mapped[FactNumber]
+    op: Mapped[FactOperation]
+
+
+class InputExprArity(InputBase):
+    __tablename__ = "input_expr_arity"
+
+    e: Mapped[FactNumber]
+    arity: Mapped[FactNumber]
+
+
+class InputExprArg(InputBase):
+    __tablename__ = "input_expr_arg"
+
+    e: Mapped[FactNumber]
+    idx: Mapped[FactNumber]
+    arg: Mapped[FactNumber]
+
+
+class InputExprStr(InputBase):
+    __tablename__ = "input_expr_str"
+
+    e: Mapped[FactNumber]
+    value: Mapped[FactText]
+
+
+class InputExprInt(InputBase):
+    __tablename__ = "input_expr_int"
+
+    e: Mapped[FactNumber]
+    value: Mapped[FactNumber]
+
+
+class InputExprTypeVal(InputBase):
+    __tablename__ = "input_expr_type_val"
+
+    e: Mapped[FactNumber]
+    t: Mapped[model_ir.TypeRef] = adt_column(TYPE_CODEC)
+
+
+class InputExprFlag(InputBase):
+    __tablename__ = "input_expr_flag"
+
+    e: Mapped[FactNumber]
+    flag: Mapped[FactText]
+
+
+class InputBinds(InputBase):
+    __tablename__ = "input_binds"
+
+    e: Mapped[FactNumber]
+    slot: Mapped[FactNumber]
+    binder: Mapped[FactNumber]
+
+
+class InputVarRef(InputBase):
+    __tablename__ = "input_var_ref"
+
+    e: Mapped[FactNumber]
+    binder: Mapped[FactNumber]
+
+
+class InputThisType(InputBase):
+    __tablename__ = "input_this_type"
+
+    e: Mapped[FactNumber]
+    t: Mapped[model_ir.TypeRef] = adt_column(TYPE_CODEC)
+
+
+class InputRoot(InputBase):
+    __tablename__ = "input_root"
+
+    e: Mapped[FactNumber]
+    expected: Mapped[model_ir.TypeRef] = adt_column(TYPE_CODEC)
+
+
+class InputExprArgClass(InputBase):
+    __tablename__ = "input_expr_arg_class"
+
+    e: Mapped[FactNumber]
+    idx: Mapped[FactNumber]
+    cls: Mapped[TypeClass] = adt_column(CLASS_CODEC)
+
+
+class InputExprFixedResult(InputBase):
+    __tablename__ = "input_expr_fixed_result"
+
+    e: Mapped[FactNumber]
+    t: Mapped[model_ir.TypeRef] = adt_column(TYPE_CODEC)
+
+
+class SqDiag(OutputBase):
+    __tablename__ = "sq_diag"
+
+    code: Mapped[FactText]
+    e: Mapped[FactNumber]
+    idx: Mapped[FactNumber]
+    detail: Mapped[DiagnosticDetail] = adt_column(DETAIL_CODEC)
+    actual: Mapped[model_ir.TypeRef] = adt_column(TYPE_CODEC)
+    subject: Mapped[model_ir.TypeRef | None] = adt_column(OPTIONAL_TYPE_CODEC)
+
+
+class Untyped(OutputBase):
+    __tablename__ = "untyped"
+
+    e: Mapped[FactNumber]
+
+
+class TypedAs(OutputBase):
+    __tablename__ = "typed_as"
+
+    e: Mapped[FactNumber]
+    text: Mapped[FactText]
+
+
+class SqInferredType(OutputBase):
+    __tablename__ = "sq_inferred_type"
+
+    e: Mapped[FactNumber]
+    t: Mapped[model_ir.TypeRef] = adt_column(TYPE_CODEC)
+
+
+class SqInferredBinderType(OutputBase):
+    __tablename__ = "sq_inferred_binder_type"
+
+    e: Mapped[FactNumber]
+    slot: Mapped[FactNumber]
+    t: Mapped[model_ir.TypeRef] = adt_column(TYPE_CODEC)
+
+
+serde_schema = SerdeSchema.__table__
+input_record = InputRecord.__table__
+input_inherits = InputInherits.__table__
+input_field = InputField.__table__
+input_variant_case = InputVariantCase.__table__
+input_variant_kind = InputVariantKind.__table__
+input_enum_value = InputEnumValue.__table__
+input_qname_text = InputQNameText.__table__
+input_prim_text = InputPrimText.__table__
+input_prim_class = InputPrimClass.__table__
+input_class_text = InputClassText.__table__
+input_numeric_join = InputNumericJoin.__table__
+input_op_binds_elem = InputOpBindsElem.__table__
+input_op_binary = InputOpBinary.__table__
+input_expr = InputExpr.__table__
+input_expr_arity = InputExprArity.__table__
+input_expr_arg = InputExprArg.__table__
+input_expr_str = InputExprStr.__table__
+input_expr_int = InputExprInt.__table__
+input_expr_type_val = InputExprTypeVal.__table__
+input_expr_flag = InputExprFlag.__table__
+input_binds = InputBinds.__table__
+input_var_ref = InputVarRef.__table__
+input_this_type = InputThisType.__table__
+input_root = InputRoot.__table__
+input_expr_arg_class = InputExprArgClass.__table__
+input_expr_fixed_result = InputExprFixedResult.__table__
+
+sq_diag = SqDiag.__table__
+untyped = Untyped.__table__
+typed_as = TypedAs.__table__
+sq_inferred_type = SqInferredType.__table__
+sq_inferred_binder_type = SqInferredBinderType.__table__
 
 
 @beartype
 @dataclass(frozen=True)
 class InputDatabase:
-    """Optional typed dataframe snapshot of the lowering database."""
+    """Typed dataframe snapshot of the lowering database."""
 
     schema: ClassVar[MetaData] = input_metadata
 
@@ -328,7 +464,7 @@ class InputDatabase:
 @beartype
 @dataclass(frozen=True)
 class OutputDatabase:
-    """Optional typed dataframe snapshot of the checker output database."""
+    """Typed dataframe snapshot of the checker output database."""
 
     schema: ClassVar[MetaData] = output_metadata
 
@@ -367,7 +503,7 @@ def load_database_as_dataframe_structure[T: InputDatabase | OutputDatabase](
     database_path: str | Path,
     dataclass_type: type[T],
 ) -> T:
-    """Read typed table selections so dataframe cells contain decoded ADT values."""
+    """Read typed selections so dataframe cells contain decoded ADT values."""
 
     with database_engine(database_path, read_only=True) as engine:
         with engine.connect() as connection:
