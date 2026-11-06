@@ -390,47 +390,10 @@ class SqInferredBinderType(OutputBase):
     t: Mapped[model_ir.TypeRef] = adt_column(TYPE_CODEC)
 
 
-serde_schema = SerdeSchema.__table__
-input_record = InputRecord.__table__
-input_inherits = InputInherits.__table__
-input_field = InputField.__table__
-input_variant_case = InputVariantCase.__table__
-input_variant_kind = InputVariantKind.__table__
-input_enum_value = InputEnumValue.__table__
-input_qname_text = InputQNameText.__table__
-input_prim_text = InputPrimText.__table__
-input_prim_class = InputPrimClass.__table__
-input_class_text = InputClassText.__table__
-input_numeric_join = InputNumericJoin.__table__
-input_op_binds_elem = InputOpBindsElem.__table__
-input_op_binary = InputOpBinary.__table__
-input_expr = InputExpr.__table__
-input_expr_arity = InputExprArity.__table__
-input_expr_arg = InputExprArg.__table__
-input_expr_str = InputExprStr.__table__
-input_expr_int = InputExprInt.__table__
-input_expr_type_val = InputExprTypeVal.__table__
-input_expr_flag = InputExprFlag.__table__
-input_binds = InputBinds.__table__
-input_var_ref = InputVarRef.__table__
-input_this_type = InputThisType.__table__
-input_root = InputRoot.__table__
-input_expr_arg_class = InputExprArgClass.__table__
-input_expr_fixed_result = InputExprFixedResult.__table__
-
-sq_diag = SqDiag.__table__
-untyped = Untyped.__table__
-typed_as = TypedAs.__table__
-sq_inferred_type = SqInferredType.__table__
-sq_inferred_binder_type = SqInferredBinderType.__table__
-
-
 @beartype
 @dataclass(frozen=True)
 class InputDatabase:
     """Typed dataframe snapshot of the lowering database."""
-
-    schema: ClassVar[MetaData] = input_metadata
 
     serde_schema: pd.DataFrame
     input_record: pd.DataFrame
@@ -460,19 +423,21 @@ class InputDatabase:
     input_expr_arg_class: pd.DataFrame
     input_expr_fixed_result: pd.DataFrame
 
+    schema: ClassVar[MetaData] = input_metadata
+
 
 @beartype
 @dataclass(frozen=True)
 class OutputDatabase:
     """Typed dataframe snapshot of the checker output database."""
 
-    schema: ClassVar[MetaData] = output_metadata
-
     sq_diag: pd.DataFrame
     untyped: pd.DataFrame
     typed_as: pd.DataFrame
     sq_inferred_type: pd.DataFrame
     sq_inferred_binder_type: pd.DataFrame
+
+    schema: ClassVar[MetaData] = output_metadata
 
 
 @contextmanager

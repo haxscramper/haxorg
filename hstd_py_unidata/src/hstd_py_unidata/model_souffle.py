@@ -162,7 +162,7 @@ class Lowering:
             self.lower_qname(qname.scope)
 
         self.database.execute(
-            insert(db.input_qname_text),
+            insert(db.InputQNameText),
             {"qname": qname, "text": qname.to_id()},
         )
         self.qnames.add(qname)
@@ -204,12 +204,12 @@ class Lowering:
         for enum_def in self.index.model.enums:
             qname = self.lower_qname(enum_def.qname)
             self.database.execute(
-                insert(db.input_record),
+                insert(db.InputRecord),
                 {"qname": qname, "kind": "enum"},
             )
             for value in enum_def.enum_values:
                 self.database.execute(
-                    insert(db.input_enum_value),
+                    insert(db.InputEnumValue),
                     {"qname": qname, "name": value.name},
                 )
 
@@ -230,7 +230,7 @@ class Lowering:
     def lower_builtin_facts(self) -> None:
         for prim in db.PRIM_CONSTRUCTORS:
             self.database.execute(
-                insert(db.input_prim_text),
+                insert(db.InputPrimText),
                 {"prim": prim, "text": prim.value},
             )
 
@@ -254,7 +254,7 @@ class Lowering:
 
             for cls in classes:
                 self.database.execute(
-                    insert(db.input_prim_class),
+                    insert(db.InputPrimClass),
                     {"prim": prim, "cls": cls},
                 )
 
@@ -266,7 +266,7 @@ class Lowering:
         for left in numeric:
             for right in numeric:
                 self.database.execute(
-                    insert(db.input_numeric_join),
+                    insert(db.InputNumericJoin),
                     {
                         "left": left,
                         "right": right,
@@ -276,7 +276,7 @@ class Lowering:
 
         for cls in TypeClass:
             self.database.execute(
-                insert(db.input_class_text),
+                insert(db.InputClassText),
                 {
                     "cls": cls,
                     "text": TYPE_CLASS_DESCRIPTIONS[cls],
@@ -286,25 +286,25 @@ class Lowering:
         for operator in self.table.values():
             if operator.elem_binder:
                 self.database.execute(
-                    insert(db.input_op_binds_elem),
+                    insert(db.InputOpBindsElem),
                     {"op": operator.op_id},
                 )
             if operator.binary_operands:
                 self.database.execute(
-                    insert(db.input_op_binary),
+                    insert(db.InputOpBinary),
                     {"op": operator.op_id},
                 )
 
     def lower_record(self, record: RecordDef) -> None:
         qname = self.lower_qname(record.qname)
         self.database.execute(
-            insert(db.input_record),
+            insert(db.InputRecord),
             {"qname": qname, "kind": record.kind.value},
         )
 
         for base in record.bases:
             self.database.execute(
-                insert(db.input_inherits),
+                insert(db.InputInherits),
                 {
                     "sub": qname,
                     "sup": self.lower_qname(base),
@@ -313,7 +313,7 @@ class Lowering:
 
         for field_def in record.fields:
             self.database.execute(
-                insert(db.input_field),
+                insert(db.InputField),
                 {
                     "qname": qname,
                     "name": field_def.name,
@@ -323,7 +323,7 @@ class Lowering:
 
         for variant in record.variants:
             self.database.execute(
-                insert(db.input_variant_kind),
+                insert(db.InputVariantKind),
                 {
                     "owner": qname,
                     "vfield": variant.field,
@@ -332,7 +332,7 @@ class Lowering:
             )
             for case in variant.cases:
                 self.database.execute(
-                    insert(db.input_variant_case),
+                    insert(db.InputVariantCase),
                     {
                         "owner": qname,
                         "vfield": variant.field,
@@ -361,7 +361,7 @@ class Lowering:
                 {},
             )
             self.database.execute(
-                insert(db.input_root),
+                insert(db.InputRoot),
                 {
                     "e": identity,
                     "expected": self.lower_type(expected),
@@ -384,37 +384,37 @@ class Lowering:
         binder_of: int | None = None
 
         self.database.execute(
-            insert(db.input_expr),
+            insert(db.InputExpr),
             {"e": identity, "op": node.op},
         )
         self.database.execute(
-            insert(db.input_expr_arity),
+            insert(db.InputExprArity),
             {"e": identity, "arity": len(node.args)},
         )
 
         if node.str_val is not None:
             self.database.execute(
-                insert(db.input_expr_str),
+                insert(db.InputExprStr),
                 {"e": identity, "value": node.str_val},
             )
         if node.int_val is not None:
             self.database.execute(
-                insert(db.input_expr_int),
+                insert(db.InputExprInt),
                 {"e": identity, "value": node.int_val},
             )
         if node.type_val is not None:
             self.database.execute(
-                insert(db.input_expr_type_val),
+                insert(db.InputExprTypeVal),
                 {"e": identity, "t": self.lower_type(node.type_val)},
             )
         if node.op == OpId.TYPE_COND and node.bool_val:
             self.database.execute(
-                insert(db.input_expr_flag),
+                insert(db.InputExprFlag),
                 {"e": identity, "flag": "unhandled_ignore"},
             )
         if node.op == OpId.THIS:
             self.database.execute(
-                insert(db.input_this_type),
+                insert(db.InputThisType),
                 {"e": identity, "t": self.lower_type(this_type)},
             )
         if node.op == OpId.VAR:
@@ -422,7 +422,7 @@ class Lowering:
             binder = scope[node.str_val]
             binder_of = self.binder_owner[binder]
             self.database.execute(
-                insert(db.input_var_ref),
+                insert(db.InputVarRef),
                 {"e": identity, "binder": binder},
             )
 
@@ -433,19 +433,19 @@ class Lowering:
             self.binder_owner[binder] = identity
             inner[name] = binder
             self.database.execute(
-                insert(db.input_binds),
+                insert(db.InputBinds),
                 {"e": identity, "slot": slot, "binder": binder},
             )
 
         for index, cls in operator.arg_class_facts(node):
             self.database.execute(
-                insert(db.input_expr_arg_class),
+                insert(db.InputExprArgClass),
                 {"e": identity, "idx": index, "cls": cls},
             )
 
         if operator.fixed_result is not None:
             self.database.execute(
-                insert(db.input_expr_fixed_result),
+                insert(db.InputExprFixedResult),
                 {
                     "e": identity,
                     "t": self.lower_type(operator.fixed_result),
@@ -471,7 +471,7 @@ class Lowering:
                 inner if index in operator.scoped_args else scope,
             )
             self.database.execute(
-                insert(db.input_expr_arg),
+                insert(db.InputExprArg),
                 {
                     "e": identity,
                     "idx": index,
@@ -521,7 +521,7 @@ def read_inferred_types(
     """Read SQLAlchemy-decoded types and validate occurrence and binder identities."""
 
     result: dict[int, TypeRef] = {}
-    for row in database.execute(select(db.sq_inferred_type)).mappings():
+    for row in database.execute(select(db.SqInferredType)).mappings():
         identity = row["e"]
         inferred = row["t"]
 
@@ -540,7 +540,7 @@ def read_inferred_types(
         result[identity] = inferred
 
     binder_slots: dict[int, dict[int, TypeRef]] = {}
-    for row in database.execute(select(db.sq_inferred_binder_type)).mappings():
+    for row in database.execute(select(db.SqInferredBinderType)).mappings():
         identity = row["e"]
         slot = row["slot"]
         inferred = row["t"]
@@ -601,12 +601,12 @@ def run_for_diagnostics(
                     actual=row["actual"],
                     subject=row["subject"],
                 )
-                for row in database.execute(select(db.sq_diag)).mappings()
+                for row in database.execute(select(db.SqDiag)).mappings()
             ]
-            untyped = set(database.execute(select(db.untyped.c.e)).scalars())
+            untyped = set(database.execute(select(db.Untyped.e)).scalars())
             typed_as = {
                 row["e"]: row["text"]
-                for row in database.execute(select(db.typed_as)).mappings()
+                for row in database.execute(select(db.TypedAs)).mappings()
             }
             inferred_types, binder_types = read_inferred_types(
                 database,
@@ -644,7 +644,7 @@ def run_type_check(
             db.input_metadata.create_all(engine)
             with engine.begin() as database:
                 database.execute(
-                    insert(db.serde_schema),
+                    insert(db.SerdeSchema),
                     {"schema": schema},
                 )
                 program = Lowering(index, table, database).lower()
