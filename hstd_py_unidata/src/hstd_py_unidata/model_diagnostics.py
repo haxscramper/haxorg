@@ -12,6 +12,7 @@ from hstd_py_lib.external_packages.rich_utils import render_rich
 
 from hstd_py_unidata.model_index import ModelIndex
 from hstd_py_unidata.model_ir import (
+    DynT,
     NamedT,
     OpId,
     QName,
@@ -176,10 +177,12 @@ class DiagnosticBuilder:
             self.output.typed_as.get(n, "<untyped>") for n in self.nested.get(expr, [])
         ]
 
-    def record_fields(self, subject: TypeRef) -> str:
-        subject: str = type_text(subject)
+    def record_fields(self, subject_type: TypeRef) -> str:
+        subject: str = type_text(subject_type)
         if "#" in subject:
-            owner, vfield = subject.split("#", 1)
+            split = subject.split("#", 1)
+            assert len(split) == 2, f"{subject}, {subject_type}"
+            owner, vfield = split
             vdef = self.index.variant(
                 VariantT(owner=self.index.by_id[owner], field=vfield)
             )
@@ -192,9 +195,13 @@ class DiagnosticBuilder:
         names = [f.name for f in self.index.effective_fields(rec.qname)]
         return f"available fields: {', '.join(names) or '(none)'}"
 
-    def variant_tags(self, subject: TypeRef) -> str:
-        owner, vfield = type_text(subject).split("#", 1)
-        vdef = self.index.variant(VariantT(owner=self.index.by_id[owner], field=vfield))
+    def variant_tags(self, subject: VariantT) -> str:
+        vdef = self.index.variant(
+            VariantT(
+                owner=self.index.by_id[subject.owner.to_id()],
+                field=subject.field,
+            )
+        )
         return ", ".join(c.tag for c in vdef.cases)
 
     def describe(self, code: DiagCode, rows: List[DiagRow]) -> str:
@@ -247,11 +254,13 @@ class DiagnosticBuilder:
             case DiagCode.ROOT_TYPE:
                 return f"the check {o.root.part.value} must have type '{row.detail}', but has type '{act_t()}'"
             case DiagCode.UNREACHABLE_TYPE_CASE:
+                assert isinstance(row.subject, DynT)
+                assert isinstance(row.subject.root, NamedT)
                 reachable = (
                     ", ".join(
                         q.to_id()
                         for q in self.index.reachable_records(
-                            NamedT(qname=self.index.by_id[row.subject])
+                            NamedT(qname=self.index.by_id[row.subject.root.qname.to_id()])
                         )
                     )
                     if row.subject
