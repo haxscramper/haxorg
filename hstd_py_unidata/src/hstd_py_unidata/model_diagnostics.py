@@ -172,9 +172,10 @@ class DiagnosticBuilder:
         steps.append(self.occ[expr].node.op.value)
         return " > ".join(steps)
 
-    def operand_types(self, expr: int) -> List[str]:
+    def operand_types(self, expr: int) -> Sequence[TypeRef]:
         return [
-            self.output.typed_as.get(n, "<untyped>") for n in self.nested.get(expr, [])
+            self.output.inferred_types.get(n, "<untyped>")
+            for n in self.nested.get(expr, [])
         ]
 
     def record_fields(self, subject_type: TypeRef) -> str:

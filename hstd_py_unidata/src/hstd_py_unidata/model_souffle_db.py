@@ -368,13 +368,6 @@ class Untyped(OutputBase):
     e: Mapped[FactNumber]
 
 
-class TypedAs(OutputBase):
-    __tablename__ = "typed_as"
-
-    e: Mapped[FactNumber]
-    text: Mapped[FactText]
-
-
 class SqInferredType(OutputBase):
     __tablename__ = "sq_inferred_type"
 
@@ -433,7 +426,6 @@ class OutputDatabase:
 
     sq_diag: pd.DataFrame
     untyped: pd.DataFrame
-    typed_as: pd.DataFrame
     sq_inferred_type: pd.DataFrame
     sq_inferred_binder_type: pd.DataFrame
 

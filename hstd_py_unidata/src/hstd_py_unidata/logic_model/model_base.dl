@@ -263,24 +263,6 @@ expr_type(E, T) :-
     expr_arity(E, N),
     type_cond_prefix(E, N, T).
 
-.decl type_text(t: Type, text: symbol)
-type_text(T, S) :- type_seen(T), T = $TPrim(P), prim_text(P, S).
-type_text(T, cat("list<", S, ">")) :- type_seen(T), T = $TList(E), type_text(E, S).
-type_text(T, cat("array<", S, ", ", to_string(N), ">")) :- type_seen(T), T = $TArray(E, N), type_text(E, S).
-type_text(T, cat("map<", SK, ", ", SV, ">")) :- type_seen(T), T = $TMap(K, V), type_text(K, SK), type_text(V, SV).
-type_text(T, cat("optional<", S, ">")) :- type_seen(T), T = $TOpt(E), type_text(E, S).
-type_text(T, cat("tuple<", S, ">")) :- type_seen(T), T = $TTuple(L), tlist_text(L, S).
-type_text(T, S) :- type_seen(T), T = $TNamed(Q), qname_text(Q, S).
-type_text(T, cat("@", P, ":", S)) :- type_seen(T), T = $TExternal(P, Q), qname_text(Q, S).
-type_text(T, cat("variant<", S, ".", F, ">")) :- type_seen(T), T = $TVariant(O, F), qname_text(O, S).
-type_text(T, cat("dyn<", S, ">")) :- type_seen(T), T = $TDyn(R), type_text(R, S).
-type_text(T, N) :- type_seen(T), T = $TParam(N).
-
-.decl tlist_text(l: TypeList, text: symbol)
-tlist_text(L, "") :- tlist_seen(L), L = $TNil().
-tlist_text(L, S) :- tlist_seen(L), L = $TCons(H, $TNil()), type_text(H, S).
-tlist_text(L, cat(SH, ", ", ST)) :- tlist_seen(L), L = $TCons(H, T), T != $TNil(), type_text(H, SH), tlist_text(T, ST).
-
 .decl type_key(t: Type, key: symbol)
 type_key(T, S) :- type_seen(T), T = $TNamed(Q), qname_text(Q, S).
 type_key(T, cat(S, "#", F)) :- type_seen(T), T = $TVariant(O, F), qname_text(O, S).
@@ -309,12 +291,6 @@ typed(E) :- expr_type(E, _).
 
 .decl untyped(e: ExprId)
 untyped(E) :- expr(E, _), !typed(E).
-
-.decl typed_as(e: ExprId, text: symbol)
-typed_as(E, S) :- expr_type(E, T), type_text(T, S).
-
-.decl operand_text(e: ExprId, idx: ArgIndex, text: symbol)
-operand_text(E, I, S) :- operand(E, I, T), type_text(T, S).
 
 .decl arg_class_ok(e: ExprId, idx: ArgIndex)
 arg_class_ok(E, I) :- expr_arg_class(E, I, C), expr_arg(E, I, A), has_class(A, C).

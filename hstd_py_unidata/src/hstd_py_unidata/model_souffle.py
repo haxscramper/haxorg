@@ -116,7 +116,7 @@ class TypeCheckOutput:
     program: LoweredProgram
     diags: list[DiagRow]
     untyped: set[int]
-    typed_as: dict[int, str]
+    inferred_types: dict[int, TypeRef]
 
 
 @beartype
@@ -124,7 +124,6 @@ class TypeCheckOutput:
 class DiagnosticsResult:
     diags: list[DiagRow]
     untyped: set[int]
-    typed_as: dict[int, str]
     inferred_types: dict[int, TypeRef]
     binder_types: dict[int, tuple[TypeRef, ...]]
 
@@ -604,10 +603,6 @@ def run_for_diagnostics(
                 for row in database.execute(select(db.SqDiag)).mappings()
             ]
             untyped = set(database.execute(select(db.Untyped.e)).scalars())
-            typed_as = {
-                row["e"]: row["text"]
-                for row in database.execute(select(db.TypedAs)).mappings()
-            }
             inferred_types, binder_types = read_inferred_types(
                 database,
                 program,
@@ -616,7 +611,6 @@ def run_for_diagnostics(
     return DiagnosticsResult(
         diags=diags,
         untyped=untyped,
-        typed_as=typed_as,
         inferred_types=inferred_types,
         binder_types=binder_types,
     )
@@ -793,5 +787,5 @@ def run_type_check(
         ),
         diags=diagnostics.diags,
         untyped=diagnostics.untyped,
-        typed_as=diagnostics.typed_as,
+        inferred_types=diagnostics.inferred_types,
     )

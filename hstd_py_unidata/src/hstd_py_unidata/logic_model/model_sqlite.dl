@@ -254,4 +254,3 @@ sq_diag(
 
 // These compatibility outputs also belong exclusively to the SQLite entry point.
 .output untyped(IO="sqlite", dbname=OUTPUT_DATABASE)
-.output typed_as(IO="sqlite", dbname=OUTPUT_DATABASE)
