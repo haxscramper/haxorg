@@ -47,6 +47,7 @@ class DiagCode(enum.StrEnum):
     INCOMPATIBLE_TYPE_CASE = "incompatible-type-case"
     NOT_DERIVABLE = "not-derivable"
     UNTYPED = "untyped"
+    LIST_ITEM_MISMATCH = "list-item-mismatch"
 
 
 @beartype
@@ -274,6 +275,11 @@ class DiagnosticBuilder:
                 return f"'{act_t()}' and '{row.detail}' are unrelated by inheritance, so the derivation test is always false"
             case DiagCode.UNTYPED:
                 return self.describe_untyped(row.expr)
+            case DiagCode.LIST_ITEM_MISMATCH:
+                return f"list init pattern mismatch: first argument is {act_t()} but {row.detail} has a different type"
+
+            case _:
+                raise ValueError(f"Unexpected diagnostics code {code}")
 
     def operand_type_rule(self, op: OpId) -> str:
         match op:

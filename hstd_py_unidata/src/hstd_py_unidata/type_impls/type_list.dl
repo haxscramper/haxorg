@@ -38,7 +38,15 @@ expr_type(E, T) :-
     (Op = "list_empty" ; Op = "map_empty"),
     expr_type_val(E, T).
 
+
 expr_type(E, $TList(T)) :-
     expr(E, "list_init"),
     expr_arg(E, 1, X),
     expr_type(X, T).
+
+diag("list-item-mismatch", E, I, $NoDetail(), T1, $SomeType(T2)) :-
+    expr(E, "list_init"),
+    operand(E, 0, T1),
+    operand(E, I, T2),
+    0 < I,
+    T1 != T2.
