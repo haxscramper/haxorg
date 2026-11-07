@@ -103,10 +103,7 @@ struct VerifyResultCollection {
 
 template <typename T>
 concept IsUnidataClass = requires(T& value) {
-    { value.get_unidata_checks() } -> std::same_as<VerifyCheckCollection const*>;
-
     requires std::same_as<std::remove_cv_t<decltype(T::unidata_id)>, std::string>;
-
     requires std::is_pointer_v<decltype(&T::unidata_id)>;
 };
 
@@ -114,6 +111,13 @@ template <typename T>
 concept IsDynamicUnidataClass = requires(T& value) {
     { value.get_unidata_runtime_type() } -> std::same_as<std::string>;
 };
+
+template <typename T>
+concept IsCheckUnidataClass = //
+    (IsUnidataClass<T> || IsDynamicUnidataClass<T>) && requires(T& value) {
+        { value.get_unidata_checks() } -> std::same_as<VerifyCheckCollection const*>;
+    };
+
 
 struct UnidataTag {
     // TODO: string for now, later might use faster solution from the immutable AST
@@ -205,7 +209,7 @@ struct VerifyContext : public OperationsTracer {
 
 template <typename T>
 hstd::Vec<VerifyResult> verify_one_with_bases(VerifyContext const& ctx, T const& data) {
-    if constexpr (IsUnidataClass<std::remove_cvref_t<T>>) {
+    if constexpr (IsCheckUnidataClass<std::remove_cvref_t<T>>) {
         hstd::Vec<VerifyResult> result;
         ::boost::mp11::mp_for_each<
             ::boost::describe::describe_bases<T, ::boost::describe::mod_any_access>>(
@@ -257,6 +261,8 @@ VerifyResultCollection verify_all(
             ReflValueAccessPath<UnidataTag>::VisitCtx const& path,
             FieldType const&                                 field) {
             UniValueAccessPath active_path = path.toPath();
+            OP_TRACER_MESSAGE_SCOPE(verfiy_ctx, "Verify field at {}", active_path);
+
 
             verfiy_ctx.active_path = &active_path;
             result.results.append(verify_one_with_bases(verfiy_ctx, field));
@@ -284,16 +290,77 @@ template <typename T>
 concept IsWrapperArg = IsStaticT<std::remove_cvref_t<T>>::value
                     || std::same_as<std::remove_cvref_t<T>, DynamicT>;
 
+template <typename... Args>
+using UniTuple = hstd::Tuple<Args...>;
+
+template <typename... Args>
+using UniVariant = hstd::Variant<Args...>;
+
+using UniPath = UniValueAccessPath;
+
+
+template <typename K, typename V>
+using UniMap = hstd::UnorderedMap<K, V>;
+
+using UniStr = hstd::Str;
+
+template <typename T>
+using UniVec = hstd::Vec<T>;
+
+template <typename T>
+using UniOpt = hstd::Opt<T>;
+
+
+struct UniType {
+    // for now string-based naming should be good enough, later on it should
+    // all be replaced using the tuple (package, type-enum) to compare the
+    // values as two integers rather than long strings.
+    UniStr          name;
+    UniVec<UniType> params;
+
+    DESC_FIELDS(UniType, (name, params));
+
+    UniType(UniStr const& name, UniVec<UniType> const& params = {})
+        : name{name}, params{params} {}
+
+    bool operator==(UniType const& other) const {
+        if (other.name != name) { return false; }
+
+        if (params.size() != other.params.size()) { return false; }
+
+        for (int i = 0; i < params.size(); ++i) {
+            if (params.at(i) != other.params.at(i)) { return false; }
+        }
+
+        return true;
+    }
+
+    UniStr format() const {
+        UniStr result = name;
+        if (!params.empty()) {
+            result += "<";
+            for (auto const& it : hstd::enumerator(params)) {
+                if (!it.is_first()) { result += ", "; }
+                result += it.value().format();
+            }
+            result += ">";
+        }
+
+        return result;
+    }
+};
+
+
 struct DynamicT {
     void const*        data;
-    std::type_index    type;
+    UniType            type;
     UniValueAccessPath path;
 
     using value_type = DynamicT;
 
     template <typename Res>
     Res const* get_as() const {
-        LOGIC_ASSERTION_CHECK(typeid(std::remove_cvref_t<Res>) == type, "");
+        LOGIC_ASSERTION_CHECK(get_type_text<Res>() == type, "");
         return static_cast<Res const*>(data);
     }
 
@@ -304,14 +371,7 @@ struct DynamicT {
     template <typename T>
     static DynamicT FromValue(
         T const&                           value,
-        std::shared_ptr<void const> const& owner = {}) {
-        return DynamicT{
-            .data   = &value,
-            .type   = typeid(std::remove_cvref_t<T>),
-            .path   = {},
-            .anchor = owner,
-        };
-    }
+        std::shared_ptr<void const> const& owner = {});
 
 
     DESC_FIELDS(DynamicT, (data, type, path));
@@ -465,52 +525,98 @@ struct UniValue {
     }
 };
 
-template <typename... Args>
-using UniTuple = hstd::Tuple<Args...>;
-
-template <typename... Args>
-using UniVariant = hstd::Variant<Args...>;
-
-using UniPath = UniValueAccessPath;
-
-
-template <typename K, typename V>
-using UniMap = hstd::UnorderedMap<K, V>;
-
-using UniStr = hstd::Str;
 
 template <typename T>
-using UniVec = hstd::Vec<T>;
+struct TypeText {};
 
-template <typename T>
-using UniOpt = hstd::Opt<T>;
+template <typename Derived, typename... Parameters>
+struct TypeTextBase {
+    static UniType get_type_text() {
+        return UniType{
+            UniStr{Derived::name},
+            UniVec<UniType>{TypeText<Parameters>::get_type_text()...}};
+    }
 
-struct UniType {
-    // for now string-based naming should be good enough, later on it should
-    // all be replaced using the tuple (package, type-enum) to compare the
-    // values as two integers rather than long strings.
-    UniStr          name;
-    UniVec<UniType> params;
-
-    DESC_FIELDS(UniType, (name, params));
-
-    UniType(UniStr const& name, UniVec<UniType> const& params = {})
-        : name{name}, params{params} {}
-
-    UniStr format() const {
-        UniStr result = name;
-        if (!params.empty()) {
-            result += "<";
-            for (auto const& it : hstd::enumerator(params)) {
-                if (!it.is_first()) { result += ", "; }
-                result += it.value().format();
-            }
-            result += ">";
-        }
-
-        return result;
+    template <typename Value>
+    static UniType get_type_text(Value const&) {
+        return get_type_text();
     }
 };
+
+template <typename E>
+struct TypeText<UniVec<E>> : TypeTextBase<TypeText<UniVec<E>>, E> {
+    static constexpr char const* name = "list";
+};
+
+template <typename E, std::size_t N>
+struct TypeText<std::array<E, N>> {
+    static UniType get_type_text() {
+        return UniType{
+            UniStr{"array"},
+            UniVec<UniType>{
+                TypeText<E>::get_type_text(), UniType{UniStr{fmt::format("{}", N)}}}};
+    }
+
+    static UniType get_type_text(std::array<E, N> const&) { return get_type_text(); }
+};
+
+template <typename K, typename V>
+struct TypeText<UniMap<K, V>> : TypeTextBase<TypeText<UniMap<K, V>>, K, V> {
+    static constexpr char const* name = "map";
+};
+
+template <typename E>
+struct TypeText<UniOpt<E>> : TypeTextBase<TypeText<UniOpt<E>>, E> {
+    static constexpr char const* name = "optional";
+};
+
+template <typename... Elements>
+struct TypeText<UniTuple<Elements...>>
+    : TypeTextBase<TypeText<UniTuple<Elements...>>, Elements...> {
+    static constexpr char const* name = "tuple";
+};
+
+template <typename... Elements>
+struct TypeText<UniVariant<Elements...>>
+    : TypeTextBase<TypeText<UniVariant<Elements...>>, Elements...> {
+    static constexpr char const* name = "variant";
+};
+
+template <typename T>
+    requires(IsUnidataClass<T> || IsDynamicUnidataClass<T const>)
+struct TypeText<T> {
+    static UniType get_type_text(T const& value) {
+        if constexpr (IsDynamicUnidataClass<T const>) {
+            return UniType{UniStr{value.get_unidata_runtime_type()}};
+        } else {
+            return UniType(T::unidata_id);
+        }
+    }
+
+    static UniType get_type_text() { return UniType(T::unidata_id); }
+};
+
+template <typename T>
+UniType get_type_text() {
+    return TypeText<T>::get_type_text();
+}
+
+template <typename T>
+UniType get_type_text(T const& value) {
+    return TypeText<T>::get_type_text(value);
+}
+
+
+template <typename T>
+DynamicT DynamicT::FromValue(T const& value, std::shared_ptr<void const> const& owner) {
+    return DynamicT{
+        .data = &value,
+        // .type   = TypeText<T>::get_type_text(value),
+        .path   = {},
+        .anchor = owner,
+    };
+}
+
 
 template <typename T>
 using UniStatic = UniValue<StaticT<T>>;
@@ -714,26 +820,12 @@ struct EvalRuntime {
     hstd::UnorderedMap<std::type_index, hstd::UnorderedMap<std::type_index, Conversion>>
         conversions;
 
-    hstd::UnorderedMap<std::type_index, std::string> type_names;
-
     template <typename T>
     void register_type(std::string const& name) {
         conversions[typeid(T)].insert_or_assign(
             typeid(T), +[](void const* value) -> void const* {
                 return static_cast<T const*>(value);
             });
-
-        type_names[typeid(T)] = name;
-    }
-
-
-    template <typename T>
-    std::string const& get_type_name_static() const {
-        return type_names.at(typeid(T));
-    }
-
-    std::string const& get_type_name_dynamic(UniDynamic const& value) const {
-        return type_names.at(value.value.type);
     }
 
     template <typename Derived, typename Base>
@@ -756,28 +848,16 @@ struct EvalRuntime {
     template <typename Target>
     hstd::Opt<UniStatic<Target>> try_as(UniDynamic const& source) const {
         DynamicT const& erased = *source.get();
-        Target const*   result = nullptr;
 
-        if (erased.type == typeid(Target)) {
-            result = static_cast<Target const*>(erased.data);
+        if (erased.type == TypeText<Target>::get_type_text()) {
+            return UniStatic<Target>{
+                StaticT<Target>::FromAlias(
+                    static_cast<Target const*>(erased.data), source.owner()),
+                source.path,
+            };
         } else {
-            auto source_types = conversions.find(erased.type);
-
-            if (source_types != conversions.end()) {
-                auto conversion = source_types->second.find(typeid(Target));
-
-                if (conversion != source_types->second.end()) {
-                    result = static_cast<Target const*>(conversion->second(erased.data));
-                }
-            }
+            return std::nullopt;
         }
-
-        if (result == nullptr) { return std::nullopt; }
-
-        return UniStatic<Target>{
-            StaticT<Target>::FromAlias(result, source.owner()),
-            source.path,
-        };
     }
 
     template <typename Target, typename Source>
@@ -906,7 +986,9 @@ auto get_unpack(T const& value) {
 
 template <>
 struct rec_unpack_value<UniDynamic> {
-    static UniStr get(UniDynamic const& value) { return UniStr{value.value.type.name()}; }
+    static UniStr get(UniDynamic const& value) {
+        return UniStr{value.value.type.format()};
+    }
 };
 
 template <typename T>

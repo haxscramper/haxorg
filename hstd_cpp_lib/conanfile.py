@@ -88,3 +88,8 @@ class HstdConan(ConanFile):
             f"HSTD_CPP_BUILD_WITH_PROTOBUF={int(bool(self.options.with_protobuf))}",
             f"HSTD_CPP_BUILD_WITH_PROTOVALIDATE={int(bool(self.options.with_protovalidate))}",
         ]
+
+    def haxorg_package_required_components(self) -> list[tuple[str, list[str]]]:
+        return [
+            ("boost", ["headers", "log"]),
+        ]

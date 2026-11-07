@@ -7,7 +7,7 @@ from typing import TYPE_CHECKING, Any
 
 import tomllib
 from conan import ConanFile
-from conan.errors import ConanException
+from conan.errors import ConanException, ConanInvalidConfiguration
 from conan.tools.build import can_run
 from conan.tools.cmake import CMake, CMakeDeps, CMakeToolchain, cmake_layout
 from conan.tools.env import VirtualRunEnv
@@ -119,6 +119,17 @@ class HaxorgPackage(_HaxorgTypingBase):
 
     def haxorg_configure_layout(self):
         pass
+
+    def haxorg_package_required_components(self) -> list[tuple[str, list[str]]]:
+        """
+        Configure which subset of the package components is actually required
+        by the downstream consumers of the target package.
+
+        When your package leaves self.cpp_info.requires unspecified, Conan's
+        generated dependency metadata implicitly includes all components of
+        its direct dependencies.
+        """
+        return []
 
     def haxorg_validate_structure(self, root_dir: str):
         root = Path(root_dir)
@@ -394,6 +405,54 @@ class HaxorgPackage(_HaxorgTypingBase):
                 self.cpp_info.libs = [self.name]
         else:
             self.cpp_info.libs = list(self.haxorg_package_libs)
+
+        dependencies = {
+            dependency.ref.name: dependency
+            for requirement, dependency in self.dependencies.direct_host.items()
+            if not requirement.test
+        }
+
+        component_overrides = {}
+
+        for name, components in self.haxorg_package_required_components():
+            if name in component_overrides:
+                raise ConanInvalidConfiguration(
+                    f"Duplicate component override for dependency {name!r}"
+                )
+
+            if name not in dependencies:
+                raise ConanInvalidConfiguration(
+                    f"Component override references {name!r}, which is not "
+                    f"a direct, non-test host dependency"
+                )
+
+            dependency = dependencies[name]
+            available_components = set(dependency.cpp_info.components)
+
+            if not available_components:
+                available_components = {name}
+
+            for component in components:
+                if component not in available_components:
+                    available = ", ".join(sorted(available_components))
+                    raise ConanInvalidConfiguration(
+                        f"Dependency {name!r} has no component {component!r}. "
+                        f"Available components: {available}"
+                    )
+
+            component_overrides[name] = components
+
+        self.cpp_info.requires = []
+
+        for name, dependency in dependencies.items():
+            if name in component_overrides:
+                components = component_overrides[name]
+            else:
+                components = list(dependency.cpp_info.components) or [name]
+
+            self.cpp_info.requires.extend(
+                f"{name}::{component}" for component in components
+            )
 
         assert self.package_folder
         for variable, directories in self.haxorg_runenv_paths.items():

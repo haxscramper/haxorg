@@ -94,6 +94,7 @@ conan_export_external_deps:
   conan export "repo_conan_wraps/kiwi"
   conan export "repo_conan_wraps/adaptagrams"
 
+# Clean cache for the local packages
 conan_remove_local_deps:
   conan remove "hstd_cpp_lib/*" --confirm
   conan remove "hstd_cpp_text_layout/*" --confirm
@@ -103,6 +104,7 @@ conan_remove_local_deps:
   conan remove "haxdex_read_code_cpp_common/*" --confirm
   conan remove "haxorg_conan_base/*" --confirm
 
+# Export local dependencies without cleaning cache
 conan_export_local_deps:
   conan export "hstd_cpp_lib"
   conan export "hstd_cpp_text_layout"
@@ -122,6 +124,7 @@ conan_validate_deps dep_name:
 
 # -c 'user.hstd:ninja_args=["-k","0","--verbose"]' \
 
+
 [working-directory("/tmp")]
 conan_validate target editable: conan_export_local_deps
   uv run --project "{{HAXORG_ROOT}}" \
@@ -134,6 +137,7 @@ conan_validate target editable: conan_export_local_deps
     --log-dir "{{HAXORG_ROOT}}/build/logs/{{target}}"
 
 
+# Clean re-export, use this to push new version to local cache
 conan_update_local_deps: conan_remove_local_deps conan_export_local_deps
 conan_update_external_deps: conan_remove_external_deps conan_export_external_deps
 
@@ -153,7 +157,11 @@ conan_workspace_install_monorepo:
     --output-folder=build/conan_super \
     --build=missing \
     {{CONAN_PYTHON_CONFIG}} \
+    -c tools.build:skip_test=True \
     --profile:all={{CONAN_PROFILE}}
+
+# Run super-install to configure/create presets for the top-level monorepo
+# project CMakeLists.txt to run.
 
 # Conan workspace install for individual projects
 conan_workspace_install_per_project:
