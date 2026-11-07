@@ -120,17 +120,6 @@ class HaxorgPackage(_HaxorgTypingBase):
     def haxorg_configure_layout(self):
         pass
 
-    def haxorg_package_required_components(self) -> list[tuple[str, list[str]]]:
-        """
-        Configure which subset of the package components is actually required
-        by the downstream consumers of the target package.
-
-        When your package leaves self.cpp_info.requires unspecified, Conan's
-        generated dependency metadata implicitly includes all components of
-        its direct dependencies.
-        """
-        return []
-
     def haxorg_validate_structure(self, root_dir: str):
         root = Path(root_dir)
         errors: list[str] = []
@@ -264,6 +253,192 @@ class HaxorgPackage(_HaxorgTypingBase):
         toolchain.cache_variables[key] = value
         toolchain.variables[key] = value
 
+    def _haxorg_requirement_components(
+        self,
+    ) -> dict[str, dict[str, tuple[str, ...] | None]]:
+        return self.__dict__.setdefault(
+            "_haxorg_requirement_component_declarations",
+            {"host": {}, "test": {}},
+        )
+
+    def _haxorg_declare_requirement(
+        self,
+        reference: str,
+        components: tuple[str, ...] | None,
+        *,
+        test: bool,
+        kwargs: dict[str, Any],
+    ):
+        if components is not None:
+            if isinstance(components, str):
+                raise ConanInvalidConfiguration(
+                    "components must be a sequence of component names, not a string"
+                )
+
+            components = tuple(components)
+
+            if any(not component or "::" in component for component in components):
+                raise ConanInvalidConfiguration(
+                    f"{reference}: components must contain unqualified component names"
+                )
+
+        name = reference.split("/", 1)[0]
+        declarations = self._haxorg_requirement_components()
+        context = "test" if test else "host"
+
+        if name in declarations[context]:
+            raise ConanInvalidConfiguration(
+                f"Duplicate {context} component declaration for {name!r}"
+            )
+
+        if test:
+            self.test_requires(reference, **kwargs)
+        else:
+            self.requires(reference, **kwargs)
+
+        declarations[context][name] = components
+
+    def haxorg_requires(
+        self,
+        reference: str,
+        *,
+        components: tuple[str, ...] | None = None,
+        **kwargs: Any,
+    ):
+        if kwargs.get("test") or kwargs.get("build"):
+            raise ConanInvalidConfiguration(
+                "haxorg_requires only accepts regular host requirements"
+            )
+
+        self._haxorg_declare_requirement(
+            reference,
+            components,
+            test=False,
+            kwargs=kwargs,
+        )
+
+    def haxorg_test_requires(
+        self,
+        reference: str,
+        *,
+        components: tuple[str, ...] | None = None,
+        **kwargs: Any,
+    ):
+        self._haxorg_declare_requirement(
+            reference,
+            components,
+            test=True,
+            kwargs=kwargs,
+        )
+
+    def _haxorg_validate_components(
+        self,
+        declarations: dict[str, tuple[str, ...] | None],
+    ):
+        for name, components in declarations.items():
+            if components is None:
+                continue
+
+            dependency = self.dependencies.host[name]
+            available = set(dependency.cpp_info.components) or {name}
+            missing = set(components) - available
+
+            if missing:
+                raise ConanInvalidConfiguration(
+                    f"{name}: unknown components {sorted(missing)}; "
+                    f"available components: {sorted(available)}"
+                )
+
+    def haxorg_component_requires(self) -> list[str] | None:
+        declarations = self._haxorg_requirement_components()
+        host = declarations["host"]
+        tests = declarations["test"]
+
+        explicit = any(components is not None for components in host.values())
+        if not explicit:
+            return None
+
+        # Use recorded declarations to distinguish original test requirements
+        # from requirements whose test trait Conan subsequently merged.
+        regular_names = {
+            requirement.ref.name
+            for requirement in self.requires.values()
+            if not requirement.build
+            and (
+                requirement.ref.name in host
+                or (not requirement.test and requirement.ref.name not in tests)
+            )
+        }
+        regular_names.update(host)
+
+        missing = sorted(
+            name for name in regular_names if name not in host or host[name] is None
+        )
+
+        if missing:
+            raise ConanInvalidConfiguration(
+                "Explicit component selection requires components on every "
+                f"regular requirement; missing: {missing}. "
+                "Use components=() for no direct exported relationship."
+            )
+
+        self._haxorg_validate_components(host)
+
+        return [
+            f"{name}::{component}"
+            for name, components in host.items()
+            for component in components or ()
+        ]
+
+    def haxorg_cmake_component_info(self, deps: CMakeDeps) -> dict[str, Any]:
+        declarations = self._haxorg_requirement_components()
+        requires = self.haxorg_component_requires()
+
+        self._haxorg_validate_components(declarations["test"])
+
+        packages = {}
+
+        for dependency in self.dependencies.host.values():
+            name = dependency.ref.name
+            components = {}
+
+            for component_name in dependency.cpp_info.components:
+                components[component_name] = {
+                    "target": deps.get_property(
+                        "cmake_target_name",
+                        dependency,
+                        component_name,
+                    )
+                    or f"{name}::{component_name}",
+                    "aliases": deps.get_property(
+                        "cmake_target_aliases",
+                        dependency,
+                        component_name,
+                    )
+                    or [],
+                }
+
+            packages[name] = {
+                "target": deps.get_property(
+                    "cmake_target_name",
+                    dependency,
+                )
+                or f"{name}::{name}",
+                "aliases": deps.get_property(
+                    "cmake_target_aliases",
+                    dependency,
+                )
+                or [],
+                "components": components,
+            }
+
+        return {
+            "explicit_host_components": requires is not None,
+            "host_requirements": declarations["host"],
+            "test_requirements": declarations["test"],
+            "packages": packages,
+        }
+
     def generate(self):
         self.haxorg_validate_structure(self.source_folder)
 
@@ -309,6 +484,16 @@ class HaxorgPackage(_HaxorgTypingBase):
             )
 
         self.haxorg_configure_toolchain(toolchain)
+
+        self.set_cmake_var(
+            toolchain,
+            "HAXORG_CONAN_COMPONENTS_JSON",
+            json.dumps(
+                self.haxorg_cmake_component_info(deps),
+                sort_keys=True,
+            ),
+        )
+
         toolchain.generate()
 
         VirtualRunEnv(self).generate()
@@ -406,53 +591,9 @@ class HaxorgPackage(_HaxorgTypingBase):
         else:
             self.cpp_info.libs = list(self.haxorg_package_libs)
 
-        dependencies = {
-            dependency.ref.name: dependency
-            for requirement, dependency in self.dependencies.direct_host.items()
-            if not requirement.test
-        }
-
-        component_overrides = {}
-
-        for name, components in self.haxorg_package_required_components():
-            if name in component_overrides:
-                raise ConanInvalidConfiguration(
-                    f"Duplicate component override for dependency {name!r}"
-                )
-
-            if name not in dependencies:
-                raise ConanInvalidConfiguration(
-                    f"Component override references {name!r}, which is not "
-                    f"a direct, non-test host dependency"
-                )
-
-            dependency = dependencies[name]
-            available_components = set(dependency.cpp_info.components)
-
-            if not available_components:
-                available_components = {name}
-
-            for component in components:
-                if component not in available_components:
-                    available = ", ".join(sorted(available_components))
-                    raise ConanInvalidConfiguration(
-                        f"Dependency {name!r} has no component {component!r}. "
-                        f"Available components: {available}"
-                    )
-
-            component_overrides[name] = components
-
-        self.cpp_info.requires = []
-
-        for name, dependency in dependencies.items():
-            if name in component_overrides:
-                components = component_overrides[name]
-            else:
-                components = list(dependency.cpp_info.components) or [name]
-
-            self.cpp_info.requires.extend(
-                f"{name}::{component}" for component in components
-            )
+        component_requires = self.haxorg_component_requires()
+        if component_requires is not None:
+            self.cpp_info.requires = component_requires
 
         assert self.package_folder
         for variable, directories in self.haxorg_runenv_paths.items():

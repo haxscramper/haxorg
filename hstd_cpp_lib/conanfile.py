@@ -1,5 +1,5 @@
 from pathlib import Path
-from typing import Protocol, cast
+from typing import TYPE_CHECKING, Protocol, cast
 
 from conan import ConanFile
 from conan.tools.cmake import CMakeDeps, CMakeToolchain
@@ -10,7 +10,13 @@ class RecipeOptions(Protocol):
     with_protovalidate: bool
 
 
-class HstdConan(ConanFile):
+if TYPE_CHECKING:
+    from haxorg_conan_base.conanfile import HaxorgPackage as HstdBase
+else:
+    HstdBase = ConanFile
+
+
+class HstdConan(HstdBase):
     name = "hstd_cpp_lib"
     version = "0.1.0"
 
@@ -36,28 +42,39 @@ class HstdConan(ConanFile):
     }
 
     def requirements(self):
-        self.requires("yaml-cpp/[>=0.8.0 <0.9]", transitive_headers=True)
+        th = dict(transitive_headers=True)
+
+        self.haxorg_requires("yaml-cpp/[>=0.8.0 <0.9]", components=("yaml-cpp",), **th)
         # TODO: range-v3 could be made non-transitive, in theory, but it
         # would require separate cleanup of the headers.
-        self.requires("range-v3/[>=0.12.0 <0.13]", transitive_headers=True)
-        self.requires("nlohmann_json/[>=3.11.3 <4]", transitive_headers=True)
-        self.requires("cctz/[>=2.4.0 <3]", transitive_headers=True)
-        self.requires("fmt/[>=11 <17]", transitive_headers=True)
-        self.requires("boost/[>=1.86.0 <2]", transitive_headers=True)
-        self.requires("cpptrace/[>=0.8.0 <2]", transitive_headers=True)
+        self.haxorg_requires(
+            "range-v3/[>=0.12.0 <0.13]",
+            components=("range-v3-meta", "range-v3-concepts"),
+            **th,
+        )
+        self.haxorg_requires(
+            "nlohmann_json/[>=3.11.3 <4]", components=("nlohmann_json",), **th
+        )
+        self.haxorg_requires("cctz/[>=2.4.0 <3]", components=("cctz",), **th)
+        self.haxorg_requires("fmt/[>=11 <17]", components=("_fmt",), **th)
+        self.haxorg_requires("boost/[>=1.86.0 <2]", components=("headers", "log"), **th)
+        self.haxorg_requires("cpptrace/[>=0.8.0 <2]", components=("cpptrace",), **th)
 
         if self.options.with_protobuf:
-            self.requires("protobuf/[>=5 <6]")
+            self.haxorg_requires("protobuf/[>=5 <6]", components=("libprotobuf",))
 
         if self.options.with_protovalidate:
-            self.requires("re2/[>=20230301]")
-            self.requires("protovalidate-cc/1.1.0")
+            self.haxorg_requires("re2/[>=20230301]", components=("re2",))
+            self.haxorg_requires(
+                "protovalidate-cc/1.1.0",
+                components=(("protovalidate-cc",) if self.options.with_protobuf else ()),
+            )
 
     def build_requirements(self):
-        self.test_requires("gtest/[>=1.15 <2]")
-        self.test_requires("benchmark/[>=1.9 <2]")
-        self.test_requires("abseil/[>=20240722.0 <20260000]")
-        self.test_requires("immer/[>=0.8 <1]")
+        self.haxorg_test_requires("gtest/[>=1.15 <2]")
+        self.haxorg_test_requires("benchmark/[>=1.9 <2]")
+        self.haxorg_test_requires("abseil/[>=20240722.0 <20260000]")
+        self.haxorg_test_requires("immer/[>=0.8 <1]")
         self.tool_requires("protobuf/[>=5 <6]")
 
     def haxorg_configure_deps(self, deps: CMakeDeps):
@@ -87,9 +104,4 @@ class HstdConan(ConanFile):
         self.cpp_info.defines = [
             f"HSTD_CPP_BUILD_WITH_PROTOBUF={int(bool(self.options.with_protobuf))}",
             f"HSTD_CPP_BUILD_WITH_PROTOVALIDATE={int(bool(self.options.with_protovalidate))}",
-        ]
-
-    def haxorg_package_required_components(self) -> list[tuple[str, list[str]]]:
-        return [
-            ("boost", ["headers", "log"]),
         ]

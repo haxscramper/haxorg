@@ -104,15 +104,18 @@ conan_remove_local_deps:
   conan remove "haxdex_read_code_cpp_common/*" --confirm
   conan remove "haxorg_conan_base/*" --confirm
 
+# NOTE: Order is important here, export dependencies
+# before the package
+
 # Export local dependencies without cleaning cache
 conan_export_local_deps:
+  conan export "haxorg_conan_base"
   conan export "hstd_cpp_lib"
   conan export "hstd_cpp_text_layout"
   conan export "haxorg_cpp_org_lib"
   conan export "hstd_cpp_diagram_lib"
   conan export "haxdex_read_code_cpp"
   conan export "haxdex_read_code_cpp_common"
-  conan export "haxorg_conan_base"
 
 [working-directory("/tmp")]
 conan_validate_deps dep_name:

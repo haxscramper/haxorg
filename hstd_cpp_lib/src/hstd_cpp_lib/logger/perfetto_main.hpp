@@ -24,6 +24,22 @@ void InitializePerfetto() {
     // only includes in-app events.
     args.backends = perfetto::kInProcessBackend;
 
+    // If the build fails with the error below, it means the
+    // `PERFETTO_DEFINE_CATEGORIES` is not visible in the translation
+    // unit -- make sure to define categories before including the
+    // perfetto main.
+    //
+    //  error: no member named 'TrackEvent' in namespace 'perfetto'; did you mean
+    //  'perfetto::shlib::TrackEvent'?
+    // In file included from <...>:1:
+    //  error: no member named 'TrackEvent' in namespace 'perfetto'; did you mean
+    //  'perfetto::shlib::TrackEvent'?
+    //    28 |     perfetto::TrackEvent::Register();
+    //       |     ^~~~~~~~~~
+    // : note: 'perfetto::shlib::TrackEvent' declared here
+    //  13436 | class TrackEvent;
+    //        |       ^
+
     perfetto::Tracing::Initialize(args);
     perfetto::TrackEvent::Register();
 }

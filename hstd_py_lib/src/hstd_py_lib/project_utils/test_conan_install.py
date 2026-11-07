@@ -145,55 +145,92 @@ def main() -> None:
         )
         editables = json.loads(result.stdout)
 
-        if reference in editables:
+        previous_editable = editables.get(reference)
+        name, version = reference.split("/", 1)
+        editable_added = False
+
+        # Editable registrations persist in CONAN_HOME and affect downstream builds.
+        # Remove our temporary registration even if building or testing fails,
+        # then restore any registration that existed before this script ran.
+        if previous_editable is not None:
             run(
                 ["conan", "editable", "remove", reference],
                 environment=environment,
                 log=log,
             )
 
-        if args.editable:
-            name, version = reference.split("/", 1)
-            run(
-                [
-                    "conan",
-                    "editable",
-                    "add",
-                    str(target),
-                    f"--name={name}",
-                    f"--version={version}",
-                ],
-                environment=environment,
-                log=log,
-            )
+        try:
+            if args.editable:
+                run(
+                    [
+                        "conan",
+                        "editable",
+                        "add",
+                        str(target),
+                        f"--name={name}",
+                        f"--version={version}",
+                    ],
+                    environment=environment,
+                    log=log,
+                )
+                editable_added = True
 
-            run(
-                ["conan", "build", str(target), *conan_arguments],
-                environment=environment,
-                log=log,
-            )
-            run(
-                [
-                    "conan",
-                    "test",
-                    str(target / "test_package"),
-                    reference,
-                    *conan_arguments,
-                ],
-                environment=environment,
-                log=log,
-            )
-        else:
-            run(
-                ["conan", "remove", f"{target.name}/*", "--confirm"],
-                environment=environment,
-                log=log,
-            )
-            run(
-                ["conan", "create", str(target), *conan_arguments],
-                environment=environment,
-                log=log,
-            )
+                run(
+                    ["conan", "build", str(target), *conan_arguments],
+                    environment=environment,
+                    log=log,
+                )
+                run(
+                    [
+                        "conan",
+                        "test",
+                        str(target / "test_package"),
+                        reference,
+                        *conan_arguments,
+                    ],
+                    environment=environment,
+                    log=log,
+                )
+
+            else:
+                run(
+                    ["conan", "remove", f"{target.name}/*", "--confirm"],
+                    environment=environment,
+                    log=log,
+                )
+                run(
+                    ["conan", "create", str(target), *conan_arguments],
+                    environment=environment,
+                    log=log,
+                )
+
+        finally:
+            try:
+                if editable_added:
+                    run(
+                        ["conan", "editable", "remove", reference],
+                        environment=environment,
+                        log=log,
+                    )
+            finally:
+                if previous_editable is not None:
+                    restore_command = [
+                        "conan",
+                        "editable",
+                        "add",
+                        previous_editable["path"],
+                        f"--name={name}",
+                        f"--version={version}",
+                    ]
+                    output_folder = previous_editable.get("output_folder")
+                    if output_folder is not None:
+                        restore_command.extend(["--output-folder", output_folder])
+
+                    run(
+                        restore_command,
+                        environment=environment,
+                        log=log,
+                    )
 
 
 if __name__ == "__main__":

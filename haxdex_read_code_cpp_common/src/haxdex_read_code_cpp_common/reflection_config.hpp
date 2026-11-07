@@ -38,6 +38,9 @@ struct ReflectionConfig {
         (compilation_database, toolchain_include, clang_resource_dir, no_std_include));
 };
 
+// FIXME: This class should be completely removed and every separate CLI tool should
+// define its own input parameters and configurations as necessary instead of relying
+// on the import from the external package.
 struct ReflectionCLI {
     DECL_DESCRIBED_ENUM(
         Mode,
