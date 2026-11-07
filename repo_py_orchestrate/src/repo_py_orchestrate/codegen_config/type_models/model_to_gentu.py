@@ -1,7 +1,8 @@
-from typing import Sequence
+from collections.abc import Sequence
 
 import glom
 import hstd_py_codegen.lang_build.astbuilder_cpp as cpp
+from beartype import beartype
 from beartype.typing import List, Optional, Tuple, cast
 from hstd_py_codegen.gen_cpp import codegen_ir
 from hstd_py_codegen.gen_cpp.codegen_ir import (
@@ -73,6 +74,7 @@ DEFAULT_NAMESPACES: dict[str, tuple[str, ...]] = {
 AST_KIND_NAME = "org::sem::OrgSemKind"
 
 
+@beartype
 class ModelToGenTu:
     def __init__(
         self,
@@ -508,6 +510,41 @@ class ModelToGenTu:
 
         return impl_functions, fields
 
+    def _gen_record_utility_items(
+        self,
+        item: RecordDef,
+        index: ModelIndex,
+    ) -> tuple[list[GenTuFunction], list[GenTuField]]:
+        fields: list[GenTuField] = list()
+        functions: list[GenTuFunction] = list()
+
+        fields.append(
+            GenTuField(
+                Name="unidata_id",
+                Type=QualType.ForName("std::string"),
+                Value=self.ast.StringLiteral(item.qname.to_id()),
+                IsStatic=True,
+                IsConst=True,
+                IsConstexpr=True,
+            )
+        )
+
+        if any(c.dynamic_subtyping for c in index.class_config_chain(item.qname)):
+            logger.info("has utility functions")
+            functions.append(
+                GenTuFunction(
+                    Name="get_unidata_runtime_type",
+                    ReturnType=QualType.ForName("std::string"),
+                    IsStatic=False,
+                    IsVirtual=True,
+                    IsConst=True,
+                    IsOverride=not index.is_root_class(item.qname),
+                    Body=self.ast.Return(self.ast.string("unidata_id")),
+                )
+            )
+
+        return functions, fields
+
     def record(self, item: RecordDef) -> GenTuStruct:
         package = self.model.package
         index = self.indexes[package]
@@ -530,18 +567,15 @@ class ModelToGenTu:
                 nested.append(self.enum(enum))
 
         fields: List[GenTuField] = list()
-        impl_functions: List[GenTuFunction] = list()
+        functions: List[GenTuFunction] = list()
 
-        fields.append(
-            GenTuField(
-                Name="unidata_id",
-                Type=QualType.ForName("std::string"),
-                Value=self.ast.StringLiteral(item.qname.to_id()),
-                IsStatic=True,
-                IsConst=True,
-                IsConstexpr=True,
-            )
+        util_functions, util_fields = self._gen_record_utility_items(
+            item=item,
+            index=index,
         )
+
+        fields.extend(util_fields)
+        functions.extend(util_functions)
 
         for variant in item.variants:
             type_group = self.variant(item, variant)
@@ -551,7 +585,7 @@ class ModelToGenTu:
                         fields.append(entry)
 
                     case GenTuFunction():
-                        impl_functions.append(entry)
+                        functions.append(entry)
 
                     case _:
                         nested.append(entry)
@@ -571,15 +605,14 @@ class ModelToGenTu:
             DeclClass=DeclClass,
         )
 
-        impl_functions.extend(aux_functions)
+        functions.extend(aux_functions)
         fields.extend(aux_fields)
 
         result = GenTuStruct(
             Name=DeclClass,
             Doc=GenTuDoc(item.doc),
             Fields=fields,
-            Methods=[self.method(item, method) for method in item.methods]
-            + impl_functions,
+            Methods=[self.method(item, method) for method in item.methods] + functions,
             Bases=[self.type_map.declaration_type(package, base) for base in item.bases],
             Nested=nested,
             IsAbstract=options.get("abstract", False),

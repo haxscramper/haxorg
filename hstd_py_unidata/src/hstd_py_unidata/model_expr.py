@@ -644,8 +644,15 @@ def op_path_of(value: Any) -> Expr:
 @frontend_entry
 @beartype
 def op_typeof(value: Any) -> Expr:
-    """Name of the concrete runtime type of the value, the most derived record type for records."""
+    """Runtime type for a concrete object, the most derived record type for records."""
     return make_node(OpId.TYPE_OF, (to_node(value),))
+
+
+@frontend_entry
+@beartype
+def op_type_text(value: Any) -> Expr:
+    """Text representation of the runtime type"""
+    return make_node(OpId.TYPE_TEXT, (to_node(value),))
 
 
 @frontend_entry

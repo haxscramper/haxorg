@@ -6,6 +6,7 @@ from beartype.typing import Dict, List, Optional, Set, Tuple
 from hstd_py_unidata.model_ir import (
     ArrayT,
     CheckDef,
+    ClassConfig,
     DynT,
     EnumDef,
     EnumValueDef,
@@ -80,6 +81,9 @@ class ModelIndex:
     def is_enum(self, qname: QName) -> bool:
         return qname in self.enums
 
+    def is_root_class(self, qname: QName) -> bool:
+        return len(self.record(qname).bases) == 0
+
     def ancestors(self, qname: QName) -> Tuple[QName, ...]:
         """The record itself followed by all transitive bases, each listed once."""
         if qname not in self.ancestor_cache:
@@ -93,6 +97,15 @@ class ModelIndex:
                 pending.extend(self.record(cur).bases)
             self.ancestor_cache[qname] = tuple(result)
         return self.ancestor_cache[qname]
+
+    def class_config_chain(self, qname: QName) -> Tuple[ClassConfig, ...]:
+        """Tuple of class configs starting from the current one and up"""
+
+        res = list()
+        for base in self.ancestors(qname):
+            res.append(self.record(base).class_config)
+
+        return tuple(res)
 
     def derived_from(self, sub: QName, sup: QName) -> bool:
         return sup in self.ancestors(sub)

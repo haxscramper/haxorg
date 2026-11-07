@@ -23,7 +23,6 @@ from beartype.typing import (
     get_origin,
 )
 from hstd_py_lib.external_packages.rich_utils import render_rich
-from hstd_py_lib.pydantic_utils import FrozenModel
 
 from hstd_py_unidata.model_diagnostics import (
     Diagnostic,
@@ -59,6 +58,7 @@ from hstd_py_unidata.model_gen import (
 )
 from hstd_py_unidata.model_index import ModelIndex
 from hstd_py_unidata.model_ir import (
+    ClassConfig,
     EnumValueDef,
     ModelDef,
     NamedT,
@@ -143,6 +143,7 @@ class ClassBuildState:
     def config(
         self,
         backend: Dict[str, Any] = dict(),
+        class_config: ClassConfig = ClassConfig(),
     ) -> None:
         overlap = sorted(set(backend) & set(self.backend))
         if overlap:
@@ -150,6 +151,7 @@ class ClassBuildState:
                 f"__config__ sets backend key(s) {overlap} that an earlier __config__ of the same class already set, at {current_loc().render()}"
             )
         self.backend.update(backend)
+        self.class_config = class_config
 
 
 @beartype
@@ -169,10 +171,6 @@ def __check__(
 def __variant__(*cases: Any, field: str = "data", kind: str = "Kind") -> None:
     """Declares a variant field with a generated kind enum, the class body version shadows this one."""
     directive_outside_class("__variant__")
-
-
-class ClassConfig(FrozenModel):
-    dynamic_subtyping: bool = False
 
 
 def __config__(
@@ -568,7 +566,7 @@ class DslModel:
         return self.finalize().model_dump(mode="json")
 
     def type_of(self, target: Any) -> TypeRef:
-        """l
+        """
         Model type of a declaration class or of any annotation-like type expression.
 
         This function returns a static type of the expression or unwraps the stored

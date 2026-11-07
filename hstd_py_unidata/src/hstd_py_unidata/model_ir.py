@@ -74,6 +74,7 @@ class PrimKind(enum.StrEnum):
     ANY = "any"
     NONE = "none"
     PATH = "path"
+    TYPE = "run_type"
 
 
 INTEGER_RANGES: Dict[PrimKind, Tuple[int, int]] = {
@@ -308,6 +309,7 @@ class OpId(enum.StrEnum):
     STR_SIZE = "str_size"
     STR_MATCHES = "str_matches"
     STR_FORMAT = "str_format"
+
     LIST_SIZE = "list_size"
     LIST_CONTAINS = "list_contains"
     LIST_AT = "list_at"
@@ -315,6 +317,7 @@ class OpId(enum.StrEnum):
     LIST_CONCAT = "list_concat"
     LIST_EMPTY = "list_empty"
     LIST_INIT = "list_init"
+
     MAP_SIZE = "map_size"
     MAP_CONTAINS = "map_contains"
     MAP_GET = "map_get"
@@ -333,6 +336,7 @@ class OpId(enum.StrEnum):
     TYPE_CASE = "type_case"
     PATH_OF = "path_of"
     TYPE_OF = "type_of"
+    TYPE_TEXT = "type_text"
 
 
 @beartype
@@ -381,6 +385,11 @@ class ExplicitDefault(FrozenModel):
     """User-provided default in the JSON value encoding; absence means the trivial default."""
 
     value: Any
+
+
+@beartype
+class ClassConfig(FrozenModel):
+    dynamic_subtyping: bool = False
 
 
 @beartype
@@ -485,6 +494,7 @@ class RecordDef(FrozenModel):
     hash_fields: Optional[Tuple[str, ...]] = None
     eq_fields: Optional[Tuple[str, ...]] = None
     loc: SourceLoc
+    class_config: ClassConfig = Field(default_factory=lambda: ClassConfig())
 
 
 class ModelDef(FrozenModel):

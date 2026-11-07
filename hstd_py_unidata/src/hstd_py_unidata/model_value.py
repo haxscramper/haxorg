@@ -213,6 +213,8 @@ def value_text(value: Value) -> str:
 @beartype
 def concrete_type_text(value: Value) -> str:
     """Runtime type name used by `type_of`; containers report only their kind."""
+    # TODO: Test this function and make so it matches the runtime behavior of the
+    # C++ code, returning the type structure recursively for the types.
     match value:
         case ScalarValue():
             return value.prim.value

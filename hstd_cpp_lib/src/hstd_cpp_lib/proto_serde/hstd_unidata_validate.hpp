@@ -1,5 +1,6 @@
 #pragma once
 
+#include "hstd_cpp_lib/stdlib/algorithms/Enumerate.hpp"
 #include <cstring>
 #include <functional>
 #include <hstd_cpp_lib/logger/TraceBase.hpp>
@@ -109,6 +110,10 @@ concept IsUnidataClass = requires(T& value) {
     requires std::is_pointer_v<decltype(&T::unidata_id)>;
 };
 
+template <typename T>
+concept IsDynamicUnidataClass = requires(T& value) {
+    { value.get_unidata_runtime_type() } -> std::same_as<std::string>;
+};
 
 struct UnidataTag {
     // TODO: string for now, later might use faster solution from the immutable AST
@@ -468,6 +473,7 @@ using UniVariant = hstd::Variant<Args...>;
 
 using UniPath = UniValueAccessPath;
 
+
 template <typename K, typename V>
 using UniMap = hstd::UnorderedMap<K, V>;
 
@@ -478,6 +484,33 @@ using UniVec = hstd::Vec<T>;
 
 template <typename T>
 using UniOpt = hstd::Opt<T>;
+
+struct UniType {
+    // for now string-based naming should be good enough, later on it should
+    // all be replaced using the tuple (package, type-enum) to compare the
+    // values as two integers rather than long strings.
+    UniStr          name;
+    UniVec<UniType> params;
+
+    DESC_FIELDS(UniType, (name, params));
+
+    UniType(UniStr const& name, UniVec<UniType> const& params = {})
+        : name{name}, params{params} {}
+
+    UniStr format() const {
+        UniStr result = name;
+        if (!params.empty()) {
+            result += "<";
+            for (auto const& it : hstd::enumerator(params)) {
+                if (!it.is_first()) { result += ", "; }
+                result += it.value().format();
+            }
+            result += ">";
+        }
+
+        return result;
+    }
+};
 
 template <typename T>
 using UniStatic = UniValue<StaticT<T>>;

@@ -106,6 +106,7 @@ class Capability(enum.StrEnum):
 BOOL_T = PrimT(prim=PrimKind.BOOL)
 INT64_T = PrimT(prim=PrimKind.INT64)
 STRING_T = PrimT(prim=PrimKind.STRING)
+TYPE_T = PrimT(prim=PrimKind.TYPE)
 PATH_T = PrimT(prim=PrimKind.PATH)
 
 COMMON_CAPS: FrozenSet[Capability] = frozenset(
@@ -1073,6 +1074,18 @@ class TypeOfOp(Operator):
     op_id = OpId.TYPE_OF
     roles = ("value",)
     arg_classes = ((TypeClass.ANY,),)
+    fixed_result = TYPE_T
+
+    def evaluate(self, host: EvalHost, node: ExprNode, env: Env) -> Value:
+        return ScalarValue(
+            prim=PrimKind.TYPE, value=concrete_type_text(host.eval(node.args[0], env))
+        )
+
+
+class TypeTextOp(Operator):
+    op_id = OpId.TYPE_TEXT
+    roles = ("value",)
+    arg_classes = ((TypeClass.ANY,),)
     fixed_result = STRING_T
 
     def evaluate(self, host: EvalHost, node: ExprNode, env: Env) -> Value:
@@ -1148,6 +1161,7 @@ def default_operators() -> List[Operator]:
         TypeCaseOp(),
         PathOfOp(),
         TypeOfOp(),
+        TypeTextOp(),
     ]
 
 

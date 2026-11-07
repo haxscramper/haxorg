@@ -824,6 +824,7 @@ class CheckGen:
                 | OpId.NE
                 | OpId.LIST_EMPTY
                 | OpId.MAP_EMPTY
+                | OpId.TYPE_TEXT
             ):
                 if expr.op in RUNTIME_DEPENDANT_KINDS:
                     args.insert(0, self.ast.string("expression_runtime"))

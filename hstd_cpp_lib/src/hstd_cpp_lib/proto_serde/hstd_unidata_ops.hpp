@@ -73,6 +73,7 @@ DECL_DESCRIBED_ENUM_STANDALONE(
     TYPE_CASE,
     PATH_OF,
     TYPE_OF,
+    TYPE_TEXT,
     //
 );
 
@@ -242,75 +243,73 @@ struct TypeText {};
 
 template <typename Derived, typename... Parameters>
 struct TypeTextBase {
-    static std::string get_type_text(EvalRuntime const* runtime, std::string_view name) {
-        std::string result{name};
-        result += '<';
+    static UniType get_type_text(EvalRuntime const* runtime) {
+        return UniType{
+            UniStr{Derived::name},
+            UniVec<UniType>{TypeText<Parameters>::get_type_text(runtime)...}};
+    }
 
-        bool first  = true;
-        auto append = [&](std::string const& text) {
-            if (!first) { result += ", "; }
-            first = false;
-            result += text;
-        };
-
-        (append(TypeText<Parameters>::get_type_text(runtime)), ...);
-
-        result += '>';
-        return result;
+    template <typename Value>
+    static UniType get_type_text(EvalRuntime const* runtime, Value const&) {
+        return get_type_text(runtime);
     }
 };
 
 template <typename E>
 struct TypeText<UniVec<E>> : TypeTextBase<TypeText<UniVec<E>>, E> {
-    static std::string get_type_text(EvalRuntime const* runtime) {
-        return TypeTextBase<TypeText<UniVec<E>>, E>::get_type_text(runtime, "list");
-    }
+    static constexpr char const* name = "list";
 };
 
 template <typename E, std::size_t N>
 struct TypeText<std::array<E, N>> {
-    static std::string get_type_text(EvalRuntime const* runtime) {
-        return "array<" + TypeText<E>::get_type_text(runtime) + ", " + std::to_string(N)
-             + ">";
+    static UniType get_type_text(EvalRuntime const* runtime) {
+        return UniType{
+            UniStr{"array"},
+            UniVec<UniType>{
+                TypeText<E>::get_type_text(runtime),
+                UniType{UniStr{fmt::format("{}", N)}}}};
+    }
+
+    static UniType get_type_text(EvalRuntime const* runtime, std::array<E, N> const&) {
+        return get_type_text(runtime);
     }
 };
 
 template <typename K, typename V>
 struct TypeText<UniMap<K, V>> : TypeTextBase<TypeText<UniMap<K, V>>, K, V> {
-    static std::string get_type_text(EvalRuntime const* runtime) {
-        return TypeTextBase<TypeText<UniMap<K, V>>, K, V>::get_type_text(runtime, "map");
-    }
+    static constexpr char const* name = "map";
 };
 
 template <typename E>
 struct TypeText<UniOpt<E>> : TypeTextBase<TypeText<UniOpt<E>>, E> {
-    static std::string get_type_text(EvalRuntime const* runtime) {
-        return TypeTextBase<TypeText<UniOpt<E>>, E>::get_type_text(runtime, "optional");
-    }
+    static constexpr char const* name = "optional";
 };
 
 template <typename... Elements>
 struct TypeText<UniTuple<Elements...>>
     : TypeTextBase<TypeText<UniTuple<Elements...>>, Elements...> {
-    static std::string get_type_text(EvalRuntime const* runtime) {
-        return TypeTextBase<TypeText<UniTuple<Elements...>>, Elements...>::get_type_text(
-            runtime, "tuple");
-    }
+    static constexpr char const* name = "tuple";
 };
 
 template <typename... Elements>
 struct TypeText<UniVariant<Elements...>>
     : TypeTextBase<TypeText<UniVariant<Elements...>>, Elements...> {
-    static std::string get_type_text(EvalRuntime const* runtime) {
-        return TypeTextBase<TypeText<UniVariant<Elements...>>, Elements...>::
-            get_type_text(runtime, "variant");
-    }
+    static constexpr char const* name = "variant";
 };
 
-template <IsUnidataClass T>
+template <typename T>
+    requires(IsUnidataClass<T> || IsDynamicUnidataClass<T const>)
 struct TypeText<T> {
-    static std::string get_type_text(EvalRuntime const* runtime) {
-        return runtime->get_type_name_static<T>();
+    static UniType get_type_text(EvalRuntime const* runtime) {
+        return UniType{UniStr{runtime->get_type_name_static<T>()}};
+    }
+
+    static UniType get_type_text(EvalRuntime const* runtime, T const& value) {
+        if constexpr (IsDynamicUnidataClass<T const>) {
+            return UniType{UniStr{value.get_unidata_runtime_type()}};
+        } else {
+            return get_type_text(runtime);
+        }
     }
 };
 
@@ -319,15 +318,24 @@ struct OpImpl<OpId::TYPE_OF> {
     template <typename Res, typename T>
     static Res eval(EvalRuntime const& runtime, UniStatic<T> const& value) {
         return Res::SubExprNoContext(
-            hstd::Str{TypeText<T>::get_type_text(&runtime)}, "type_of");
+            TypeText<T>::get_type_text(&runtime, *value.get()), "type_of");
     }
 
     template <typename Res>
     static Res eval(EvalRuntime const& runtime, UniDynamic const& value) {
         return Res::SubExprNoContext(
-            hstd::Str{runtime.get_type_name_dynamic(value)}, "type_of");
+            UniType{UniStr{runtime.get_type_name_dynamic(value)}}, "type_of");
     }
 };
+
+template <>
+struct OpImpl<OpId::TYPE_TEXT> {
+    template <typename Res>
+    static Res eval(UniStatic<UniType> const& value) {
+        return Res::SubExprNoContext(get_stored_value(value).format(), "type_text");
+    }
+};
+
 
 template <>
 struct OpImpl<OpId::EQ> {

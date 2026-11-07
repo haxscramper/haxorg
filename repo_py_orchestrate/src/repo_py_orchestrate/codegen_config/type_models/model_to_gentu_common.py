@@ -282,6 +282,7 @@ class TypeTranslation:
                     PrimKind.BOOL: "bool",
                     PrimKind.NONE: "void",
                     PrimKind.PATH: "hstd::ext::unidata::UniPath",
+                    PrimKind.TYPE: "hstd::ext::unidata::UniType",
                 }
                 if typ.prim == PrimKind.ANY:
                     raise NotImplementedError(

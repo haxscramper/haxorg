@@ -28,6 +28,7 @@
     | PAny {}
     | PNone {}
     | PPath {}
+    | PType {}
 
 .type QName = QNameValue { name: symbol, scope: OptQName }
 .type OptQName = NoScope {} | SomeScope { value: QName }

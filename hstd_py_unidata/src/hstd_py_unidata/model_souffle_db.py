@@ -40,6 +40,7 @@ PRIM_CONSTRUCTORS: dict[model_ir.PrimKind, str] = {
     model_ir.PrimKind.ANY: "PAny",
     model_ir.PrimKind.NONE: "PNone",
     model_ir.PrimKind.PATH: "PPath",
+    model_ir.PrimKind.TYPE: "PType",
 }
 
 

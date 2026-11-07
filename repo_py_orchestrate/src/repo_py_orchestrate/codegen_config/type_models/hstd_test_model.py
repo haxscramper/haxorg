@@ -2,7 +2,7 @@ import enum
 
 from beartype import beartype
 from beartype.typing import Optional
-from hstd_py_unidata.model_dsl import __check__, get_dsl_model
+from hstd_py_unidata.model_dsl import __check__, __config__, get_dsl_model
 from hstd_py_unidata.model_expr import (
     Expr,
     op_all,
@@ -26,11 +26,13 @@ from hstd_py_unidata.model_expr import (
     op_path_of,
     op_sum,
     op_take_while,
+    op_type_text,
     op_typeof,
     op_walk,
     type_case,
     type_cond,
 )
+from hstd_py_unidata.model_ir import ClassConfig
 
 M = get_dsl_model("hstd.unidata_dsl.test")
 
@@ -180,6 +182,12 @@ class OperationChecks(M.Class):
     base: Base
     derived: Derived
     choice: Choice
+
+    __config__(
+        class_config=ClassConfig(
+            dynamic_subtyping=True,
+        )
+    )
 
     for check_name, condition in (
         ("Eq", M.This["number"] == 6),
@@ -510,9 +518,11 @@ class OperationChecks(M.Class):
             # be "unpacked" for the static case.
             type_cond(
                 op_walk(M.This["derived"])._List.at(0),
-                type_case(M._T["Base"], "record", op_typeof(M.Iter("record"))),
+                type_case(
+                    M._T["Base"], "record", op_type_text(op_typeof(M.Iter("record")))
+                ),
             )
-            == "Base",
+            == "Derived",
         ),
         (
             "PathOf",
