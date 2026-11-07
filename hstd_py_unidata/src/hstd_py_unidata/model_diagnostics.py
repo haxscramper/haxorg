@@ -96,6 +96,12 @@ class DslTypeError(Exception):
         )
         self.diagnostics = list(diagnostics)
 
+    def get_diag(self, code: DiagCode) -> list[Diagnostic]:
+        return [it for it in self.diagnostics if it.code == code]
+
+    def get_diag1(self, code: DiagCode) -> Diagnostic:
+        return self.get_diag(code)[0]
+
 
 @beartype
 class DiagnosticBuilder:

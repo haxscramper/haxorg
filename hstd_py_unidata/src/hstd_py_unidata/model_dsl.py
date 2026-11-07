@@ -616,13 +616,14 @@ class DslModel:
     def type_check(
         self,
         capture_databases: bool = False,
+        raise_on_type_error: bool = True,
     ) -> TypeDiagResult:
         """Raises `DslTypeError` with one diagnostic per root cause when any check expression is ill-typed."""
         diagnostics = self.type_check_diagnostics(capture_databases=capture_databases)
 
         # Path("/tmp/debug.dl").write_text(render_program(diagnostics.type_check.program))
 
-        if diagnostics.diagnostics:
+        if diagnostics.diagnostics and raise_on_type_error:
             raise DslTypeError(self.package, diagnostics.diagnostics)
 
         Path("/tmp/type_check.txt").write_text(

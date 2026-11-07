@@ -3,6 +3,7 @@ from pathlib import Path
 import glom
 import pytest
 from hstd_py_lib.external_packages.rich_utils import render_rich
+from hstd_py_unidata.model_diagnostics import DiagCode, DslTypeError
 from hstd_py_unidata.model_dsl import (
     get_dsl_model,
 )
@@ -20,8 +21,22 @@ from hstd_py_unidata.model_ir import (
 )
 
 
+def test_list_type_check(stable_test_dir: Path):
+    M = get_dsl_model("test.tc.model")
+
+    class Entry(M.Class):
+        eq_const_list_err: list[int] = M.Field(
+            check=M.This == [1, 2, "str"], message="err"
+        )
+
+    with pytest.raises(DslTypeError, match="list init pattern mismatch") as ex:
+        M.type_check()
+
+    ex.value.get_diag1(DiagCode.LIST_ITEM_MISMATCH)
+
+
 def test_const_ops(stable_test_dir: Path, subtests: pytest.Subtests) -> None:
-    M = get_dsl_model("test.tc.const_ops")
+    M = get_dsl_model("test.tc.model")
 
     class Entry(M.Class):
         eq_const_int: int = M.Field(check=M.This == 1, message="err")
@@ -30,7 +45,10 @@ def test_const_ops(stable_test_dir: Path, subtests: pytest.Subtests) -> None:
             check=M.This == [1, 2, "str"], message="err"
         )
 
-    mapped = M.type_check(capture_databases=False)
+    mapped = M.type_check(
+        capture_databases=False,
+        raise_on_type_error=False,
+    )
     index = ModelIndex(mapped.type_check.model)
 
     def field(name: str) -> tuple[str, FieldDef, ExprNode]:
@@ -71,6 +89,7 @@ field {name} cond:
         assert isinstance(rhs.typed_as.elem, PrimT), _err
 
     with subtests.test("eq to const int list err"):
+        # raise on type errors is disabled, but the partial typing is still evaluated
         _err, _, c_eq_const_list = field("eq_const_list_err")
         rhs = subexpr(c_eq_const_list, glom.T.args[1])
         assert rhs.op == OpId.LIST_INIT, _err
