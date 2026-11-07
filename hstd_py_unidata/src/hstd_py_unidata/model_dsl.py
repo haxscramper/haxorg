@@ -23,6 +23,7 @@ from beartype.typing import (
     get_origin,
 )
 from hstd_py_lib.external_packages.rich_utils import render_rich
+from hstd_py_lib.pydantic_utils import FrozenModel
 
 from hstd_py_unidata.model_diagnostics import (
     Diagnostic,
@@ -34,35 +35,8 @@ from hstd_py_unidata.model_expr import (
     Expr,
     current_loc,
     frontend_entry,
-    op_all,
-    op_all_rec,
-    op_and,
-    op_concat,
-    op_cond,
-    op_empty_list,
-    op_empty_map,
-    op_exists,
-    op_exists_one,
-    op_filter,
-    op_filter_map,
-    op_fold,
-    op_format,
-    op_group_by,
-    op_let,
-    op_map,
-    op_max,
-    op_min,
-    op_not,
-    op_or,
-    op_path_of,
-    op_sum,
-    op_take_while,
-    op_typeof,
-    op_walk,
     this_expr,
     to_node,
-    type_case,
-    type_cond,
     var_expr,
 )
 from hstd_py_unidata.model_frontend import (
@@ -70,23 +44,12 @@ from hstd_py_unidata.model_frontend import (
     DslAttr,
     EnFieldAnnotation,
     ExternalTypeLookup,
-    FixedArray,
-    Float32,
-    Float64,
-    Int8,
-    Int16,
-    Int32,
-    Int64,
     MethodWrapper,
     RawCheck,
     RawField,
     RawMethod,
     RawRecord,
     RawVariant,
-    UInt8,
-    UInt16,
-    UInt32,
-    UInt64,
 )
 from hstd_py_unidata.model_gen import (
     GenConfig,
@@ -120,56 +83,6 @@ from hstd_py_unidata.model_value import Value, decode_json, encode_json
 
 DIRECTIVE_NAMES = ("__check__", "__variant__", "__config__")
 
-__all__ = [
-    "DslModel",
-    "EnFieldAnnotation",
-    "FixedArray",
-    "Float32",
-    "Float64",
-    "GenConfig",
-    "Int8",
-    "Int16",
-    "Int32",
-    "Int64",
-    "ReduceConfig",
-    "Severity",
-    "UInt8",
-    "UInt16",
-    "UInt32",
-    "UInt64",
-    "__check__",
-    "__config__",
-    "__variant__",
-    "get_dsl_model",
-    "op_all",
-    "op_all_rec",
-    "op_and",
-    "op_concat",
-    "op_cond",
-    "op_empty_list",
-    "op_empty_map",
-    "op_exists",
-    "op_exists_one",
-    "op_filter",
-    "op_filter_map",
-    "op_fold",
-    "op_format",
-    "op_group_by",
-    "op_let",
-    "op_map",
-    "op_max",
-    "op_min",
-    "op_not",
-    "op_or",
-    "op_path_of",
-    "op_sum",
-    "op_take_while",
-    "op_typeof",
-    "op_walk",
-    "type_case",
-    "type_cond",
-]
-
 
 @beartype
 @dataclass
@@ -191,6 +104,7 @@ class ClassBuildState:
     checks: List[RawCheck] = field(default_factory=list)
     variants: List[RawVariant] = field(default_factory=list)
     backend: Dict[str, Any] = field(default_factory=dict)
+    class_config: ClassConfig = field(default_factory=lambda: ClassConfig())
 
     @frontend_entry
     def check(
@@ -226,7 +140,10 @@ class ClassBuildState:
         )
 
     @frontend_entry
-    def config(self, backend: Dict[str, Any]) -> None:
+    def config(
+        self,
+        backend: Dict[str, Any] = dict(),
+    ) -> None:
         overlap = sorted(set(backend) & set(self.backend))
         if overlap:
             raise ValueError(
@@ -254,7 +171,14 @@ def __variant__(*cases: Any, field: str = "data", kind: str = "Kind") -> None:
     directive_outside_class("__variant__")
 
 
-def __config__(backend: Dict[str, Any]) -> None:
+class ClassConfig(FrozenModel):
+    dynamic_subtyping: bool = False
+
+
+def __config__(
+    backend: Dict[str, Any] = dict(),
+    class_config: ClassConfig = ClassConfig(),
+) -> None:
     """Attaches opaque backend data to the enclosing class, the class body version shadows this one."""
     directive_outside_class("__config__")
 

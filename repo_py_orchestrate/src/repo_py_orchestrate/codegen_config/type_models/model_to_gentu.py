@@ -370,15 +370,153 @@ class ModelToGenTu:
             ),
         )
 
+    def _gen_record_check_registration(
+        self,
+        check_functions: list[CheckFunction],
+        DeclClass: QualType,
+    ) -> list[GenTuFunction]:
+        if len(check_functions) == 0:
+            return list()
+
+        impl_functions = list()
+        impl_functions.append(
+            self.check_gen.gen_populate_expression_runtime(
+                parentClass=DeclClass,
+            )
+        )
+
+        assign_stack = list()
+
+        for check in check_functions:
+            for impl in check.impl:
+                impl_functions.append(impl)
+
+            assign_stack.append(
+                self.ast.init_list(
+                    [
+                        self.ast.XConstructObj(
+                            CPP_KEY_T(),
+                            [
+                                self.ast.StringLiteral(check.class_type_name),
+                                self.ast.StringLiteral(check.class_field)
+                                if check.class_field
+                                else self.ast.string("std::nullopt"),
+                            ],
+                        ),
+                        self.ast.XConstructObj(
+                            CPP_CB_LIST_T(),
+                            Args=[
+                                self.ast.XConstructObj(
+                                    CPP_CB_T(),
+                                    Args=[self.ast.Addr(self.ast.string(impl.Name))],
+                                )
+                                for impl in check.impl
+                            ],
+                            Line=False,
+                        ),
+                    ],
+                    isLine=False,
+                    isTrailing=True,
+                )
+            )
+
+        impl_functions.append(
+            GenTuFunction(
+                Name="get_unidata_checks",
+                ParentClass=DeclClass,
+                IsStatic=True,
+                ReturnType=CPP_VERIFY_COLLECTION_T().asConstPtr(),
+                Body=self.ast.stack(
+                    [
+                        self.ast.VarDecl(
+                            cpp.ParmVarParams(
+                                type=CPP_VERIFY_COLLECTION_T(),
+                                name="checks",
+                                storage=cpp.StorageClass.Static,
+                                defArg=self.ast.init_list(
+                                    [
+                                        self.ast.init_list(assign_stack, isLine=False),
+                                    ]
+                                ),
+                                IsLine=False,
+                            )
+                        ),
+                        self.ast.Return(self.ast.Addr(self.ast.string("checks"))),
+                    ]
+                ),
+            )
+        )
+
+        return impl_functions
+
+    def _gen_record_check_functions(
+        self,
+        item: RecordDef,
+        DeclClass: QualType,
+    ) -> tuple[list[GenTuFunction], list[GenTuField]]:
+        variant_fields = {variant.field for variant in item.variants}
+
+        fields: List[GenTuField] = list()
+        impl_functions = list()
+        model_fields, check_functions = cast(
+            tuple[list[GenTuField], list[CheckFunction]],
+            glom.glom(
+                cast(
+                    List[Tuple[GenTuField, List[Optional[CheckFunction]]]],
+                    [
+                        self.field(item, member, parentClass=DeclClass)
+                        for member in item.fields
+                        if member.name not in variant_fields
+                    ],
+                ),
+                glom.Fold(
+                    glom.T,
+                    init=lambda: ([], []),
+                    op=lambda acc, item: (
+                        acc[0].append(item[0]),
+                        acc[1].append(item[1]) if item[1] else None,
+                        acc,
+                    )[-1],
+                ),
+            ),
+        )
+
+        fields.extend(model_fields)
+
+        if item.checks:
+            check_functions.append(
+                CheckFunction(
+                    class_type_name=item.qname.to_id(),
+                    class_field=None,
+                    impl=[
+                        self.check_gen.gen_record_check(
+                            owner=item,
+                            check=check,
+                            parentClass=DeclClass,
+                        )
+                        for check in item.checks
+                    ],
+                )
+            )
+
+        impl_functions.extend(
+            self._gen_record_check_registration(
+                check_functions=check_functions,
+                DeclClass=DeclClass,
+            )
+        )
+
+        return impl_functions, fields
+
     def record(self, item: RecordDef) -> GenTuStruct:
         package = self.model.package
         index = self.indexes[package]
         options = cpp_config(item)
         is_ast = self.type_map.is_ast(package, item.qname)
+        DeclClass = self.type_map.declaration_type(package, item.qname)
 
         variant_cases = {case.case for variant in item.variants for case in variant.cases}
         variant_enums = {variant.kind_enum for variant in item.variants}
-        variant_fields = {variant.field for variant in item.variants}
 
         # Use QName.scope rather than relying on RecordDef.nested containing
         # synthetic variant enums in a particular finalizer implementation.
@@ -391,9 +529,19 @@ class ModelToGenTu:
             if enum.qname.scope == item.qname and enum.qname not in variant_enums:
                 nested.append(self.enum(enum))
 
-        DeclClass = self.type_map.declaration_type(package, item.qname)
         fields: List[GenTuField] = list()
         impl_functions: List[GenTuFunction] = list()
+
+        fields.append(
+            GenTuField(
+                Name="unidata_id",
+                Type=QualType.ForName("std::string"),
+                Value=self.ast.StringLiteral(item.qname.to_id()),
+                IsStatic=True,
+                IsConst=True,
+                IsConstexpr=True,
+            )
+        )
 
         for variant in item.variants:
             type_group = self.variant(item, variant)
@@ -418,126 +566,13 @@ class ModelToGenTu:
                 )
             nested.append(GenTuPass(section["text"]))
 
-        check_functions: List[CheckFunction]
-        model_fields, check_functions = glom.glom(
-            cast(
-                List[Tuple[GenTuField, List[Optional[CheckFunction]]]],
-                [
-                    self.field(item, member, parentClass=DeclClass)
-                    for member in item.fields
-                    if member.name not in variant_fields
-                ],
-            ),
-            glom.Fold(
-                glom.T,
-                init=lambda: ([], []),
-                op=lambda acc, item: (
-                    acc[0].append(item[0]),
-                    acc[1].append(item[1]) if item[1] else None,
-                    acc,
-                )[-1],
-            ),
+        aux_functions, aux_fields = self._gen_record_check_functions(
+            item=item,
+            DeclClass=DeclClass,
         )
 
-        fields.extend(model_fields)
-
-        fields.append(
-            GenTuField(
-                Name="unidata_id",
-                Type=QualType.ForName("std::string"),
-                Value=self.ast.StringLiteral(item.qname.to_id()),
-                IsStatic=True,
-                IsConst=True,
-                IsConstexpr=True,
-            )
-        )
-
-        if item.checks:
-            check_functions.append(
-                CheckFunction(
-                    class_type_name=item.qname.to_id(),
-                    class_field=None,
-                    impl=[
-                        self.check_gen.gen_record_check(
-                            owner=item,
-                            check=check,
-                            parentClass=DeclClass,
-                        )
-                        for check in item.checks
-                    ],
-                )
-            )
-
-        if 0 < len(check_functions):
-            impl_functions.append(
-                self.check_gen.gen_populate_expression_runtime(
-                    parentClass=DeclClass,
-                )
-            )
-
-            assign_stack = list()
-
-            for check in check_functions:
-                for impl in check.impl:
-                    impl_functions.append(impl)
-
-                assign_stack.append(
-                    self.ast.init_list(
-                        [
-                            self.ast.XConstructObj(
-                                CPP_KEY_T(),
-                                [
-                                    self.ast.StringLiteral(check.class_type_name),
-                                    self.ast.StringLiteral(check.class_field)
-                                    if check.class_field
-                                    else self.ast.string("std::nullopt"),
-                                ],
-                            ),
-                            self.ast.XConstructObj(
-                                CPP_CB_LIST_T(),
-                                Args=[
-                                    self.ast.XConstructObj(
-                                        CPP_CB_T(),
-                                        Args=[self.ast.Addr(self.ast.string(impl.Name))],
-                                    )
-                                    for impl in check.impl
-                                ],
-                                Line=False,
-                            ),
-                        ],
-                        isLine=False,
-                        isTrailing=True,
-                    )
-                )
-
-            impl_functions.append(
-                GenTuFunction(
-                    Name="get_unidata_checks",
-                    ParentClass=DeclClass,
-                    IsStatic=True,
-                    ReturnType=CPP_VERIFY_COLLECTION_T().asConstPtr(),
-                    Body=self.ast.stack(
-                        [
-                            self.ast.VarDecl(
-                                cpp.ParmVarParams(
-                                    type=CPP_VERIFY_COLLECTION_T(),
-                                    name="checks",
-                                    storage=cpp.StorageClass.Static,
-                                    defArg=self.ast.init_list(
-                                        [
-                                            self.ast.init_list(
-                                                assign_stack, isLine=False
-                                            ),
-                                        ]
-                                    ),
-                                    IsLine=False,
-                                )
-                            ),
-                            self.ast.Return(self.ast.Addr(self.ast.string("checks"))),
-                        ]
-                    ),
-                )
-            )
+        impl_functions.extend(aux_functions)
+        fields.extend(aux_fields)
 
         result = GenTuStruct(
             Name=DeclClass,

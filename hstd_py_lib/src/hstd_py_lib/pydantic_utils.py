@@ -14,7 +14,7 @@ from typing import Annotated, Any, Callable, Optional, TypeVar
 import plumbum
 from beartype import beartype
 from beartype.typing import Literal, Union, get_args, get_origin
-from pydantic import AfterValidator, BaseModel, TypeAdapter
+from pydantic import AfterValidator, BaseModel, ConfigDict, TypeAdapter
 from pydantic_core import PydanticSerializationError
 
 from hstd_py_lib.script_logging import ExceptionContextNote
@@ -26,6 +26,15 @@ _TYPE_TAG = "__type__"
 _PYDANTIC_TYPE_TAG = "__pydantic_type__"
 
 # registry: type name -> (dump fn, load fn)
+
+
+class FrozenModel(BaseModel):
+    """Immutable, structurally comparable and hashable IR node."""
+
+    model_config = ConfigDict(
+        frozen=True,
+        extra="forbid",
+    )
 
 
 @dataclass(frozen=True)

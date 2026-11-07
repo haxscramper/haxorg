@@ -10,7 +10,8 @@ from beartype import beartype
 from beartype.typing import Dict, List, Literal, Optional, Tuple, Union
 from frozendict import deepfreeze, frozendict
 from hstd_py_lib.external_packages.rich_utils import IndentedTree
-from pydantic import BaseModel, ConfigDict, Field, PlainSerializer, ValidateAs
+from hstd_py_lib.pydantic_utils import FrozenModel
+from pydantic import Field, PlainSerializer, ValidateAs
 from rich.text import Text
 from rich.tree import Tree
 
@@ -19,12 +20,6 @@ FrozenBackend = Annotated[
     ValidateAs(dict[str, Any], deepfreeze),
     PlainSerializer(dict, return_type=dict[str, Any]),
 ]
-
-
-class FrozenModel(BaseModel):
-    """Immutable, structurally comparable and hashable IR node."""
-
-    model_config = ConfigDict(frozen=True)
 
 
 @beartype

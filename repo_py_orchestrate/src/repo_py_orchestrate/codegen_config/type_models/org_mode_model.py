@@ -2,6 +2,7 @@ from typing import Annotated, Optional
 from typing import List as ListType
 
 from hstd_py_unidata.model_dsl import (
+    ClassConfig,
     EnFieldAnnotation,
     Int32,
     Int64,
@@ -32,6 +33,9 @@ class Org(M.Class):
                 ast_root=True,
                 abstract=True,
             ),
+        ),
+        class_config=ClassConfig(
+            dynamic_subtyping=True,
         ),
     )
 
