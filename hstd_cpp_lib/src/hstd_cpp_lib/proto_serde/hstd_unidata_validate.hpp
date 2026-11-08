@@ -527,7 +527,9 @@ struct UniValue {
 
 
 template <typename T>
-struct TypeText {};
+struct TypeText {
+    HSTD_BASE_TEMPLATE_CLASS_ERR();
+};
 
 template <typename Derived, typename... Parameters>
 struct TypeTextBase {
@@ -597,6 +599,13 @@ struct TypeText<T> {
 };
 
 template <typename T>
+    requires(!IsUnidataClass<T> && !IsDynamicUnidataClass<T const>)
+struct TypeText<T> {
+    static UniType get_type_text(T const& value) { return UniType(typeid(T).name()); }
+    static UniType get_type_text() { return UniType(typeid(T).name()); }
+};
+
+template <typename T>
 UniType get_type_text() {
     return TypeText<T>::get_type_text();
 }
@@ -606,12 +615,14 @@ UniType get_type_text(T const& value) {
     return TypeText<T>::get_type_text(value);
 }
 
+static_assert(!IsUnidataClass<long>);
+static_assert(!IsDynamicUnidataClass<long const>);
 
 template <typename T>
 DynamicT DynamicT::FromValue(T const& value, std::shared_ptr<void const> const& owner) {
     return DynamicT{
-        .data = &value,
-        // .type   = TypeText<T>::get_type_text(value),
+        .data   = &value,
+        .type   = TypeText<T>::get_type_text(value),
         .path   = {},
         .anchor = owner,
     };

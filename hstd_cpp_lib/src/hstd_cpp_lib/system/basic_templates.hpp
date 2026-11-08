@@ -153,7 +153,9 @@ template <typename T>
 concept DefaultConstructible = std::is_default_constructible_v<T>;
 
 template <typename T>
-struct SerdeDefaultProvider {};
+struct SerdeDefaultProvider {
+    HSTD_BASE_TEMPLATE_CLASS_ERR();
+};
 
 template <DefaultConstructible T>
 struct SerdeDefaultProvider<T> {

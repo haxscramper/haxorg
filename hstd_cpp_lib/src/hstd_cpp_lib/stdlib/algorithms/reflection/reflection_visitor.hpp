@@ -487,7 +487,9 @@ struct ReflPathFormatter {
 /// deterministic order. `step` describes how to reach the field, `field` is a const
 /// reference to it.
 template <typename T, typename Tag>
-struct ReflVisitor {};
+struct ReflVisitor {
+    HSTD_BASE_TEMPLATE_CLASS_ERR();
+};
 
 
 template <typename T>

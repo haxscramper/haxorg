@@ -5,6 +5,15 @@
 
 namespace hstd {
 
+// Note, this macro does not work with the classes that need to be checked in the concept
+// -- requires() triggers a full instantiation, and will trigger an error.
+#define HSTD_BASE_TEMPLATE_CLASS_ERR()                                                   \
+    static_assert(                                                                       \
+        false,                                                                           \
+        "Base specialization selected for the specialization-based dispatch. Add "       \
+        "correct specialization that would handle the provided type.");
+
+
 /// Helper implementation to pass multiple types around in a 'pack'
 template <typename... Args>
 struct arg_pack {};

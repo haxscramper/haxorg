@@ -13,7 +13,9 @@ namespace hstd::serde {
 namespace gpb = ::google::protobuf;
 
 template <typename T>
-struct proto_org_map {};
+struct proto_org_map {
+    HSTD_BASE_TEMPLATE_CLASS_ERR();
+};
 
 #    define _map(__Kind)                                                                 \
         template <>                                                                      \

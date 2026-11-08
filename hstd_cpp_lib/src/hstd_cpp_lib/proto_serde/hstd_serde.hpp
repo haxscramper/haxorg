@@ -60,7 +60,9 @@ Message unpackMessage(
 
 
 template <typename Proto, typename T>
-struct proto_serde {};
+struct proto_serde {
+    HSTD_BASE_TEMPLATE_CLASS_ERR();
+};
 
 void json_to_value(json const& in, ::google::protobuf::Value* out);
 void json_to_struct(json const& in, ::google::protobuf::Struct* out);

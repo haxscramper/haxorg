@@ -1006,7 +1006,9 @@ hstd::SPtr<graph::gv::GraphGroup> org::imm::toGraphviz(
 #endif
 
 template <typename T>
-struct ImmSubnodeCollectionVisitor {};
+struct ImmSubnodeCollectionVisitor {
+    HSTD_BASE_TEMPLATE_CLASS_ERR();
+};
 
 #define IMM_SUBNODE_COLLECTOR(__TemplateArgs, __VisitorTypeSpecification)                \
     DEFINE_VISITOR_BASE_ALL(                                                             \

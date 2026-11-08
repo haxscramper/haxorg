@@ -108,7 +108,9 @@ void equality_compare_impl(
     };
 
 template <typename T>
-struct reporting_comparator {};
+struct reporting_comparator {
+    HSTD_BASE_TEMPLATE_CLASS_ERR();
+};
 
 EQUALITY_COMPARE_TRIVIAL(int);
 EQUALITY_COMPARE_TRIVIAL(bool);

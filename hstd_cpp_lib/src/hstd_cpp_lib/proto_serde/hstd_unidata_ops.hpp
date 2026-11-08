@@ -78,7 +78,9 @@ DECL_DESCRIBED_ENUM_STANDALONE(
 );
 
 template <OpId Kind>
-struct OpImpl {};
+struct OpImpl {
+    HSTD_BASE_TEMPLATE_CLASS_ERR();
+};
 
 template <typename T>
 using S = UniStatic<T>;
@@ -189,11 +191,11 @@ struct OpImpl<OpId::WALK> {
             [&]<typename FieldType>(
                 ReflValueAccessPath<UnidataTag>::VisitCtx const& path,
                 FieldType const&                                 field) {
-                // result.push_back(
-                //     UniDynamic{
-                //         DynamicT::FromValue(field, data.owner()),
-                //         data.path.add(path.toPath()),
-                //     });
+                result.push_back(
+                    UniDynamic{
+                        DynamicT::FromValue(field, data.owner()),
+                        data.path.add(path.toPath()),
+                    });
             });
 
         return UniStatic<UniVec<UniDynamic>>::SubExprNoContext(result, "walk");
@@ -243,8 +245,7 @@ template <>
 struct OpImpl<OpId::TYPE_OF> {
     template <typename Res, typename T>
     static Res eval(EvalRuntime const& runtime, UniStatic<T> const& value) {
-        // return Res::SubExprNoContext(
-        //     TypeText<T>::get_type_text(&runtime, *value.get()), "type_of");
+        return Res::SubExprNoContext(TypeText<T>::get_type_text(*value.get()), "type_of");
     }
 
     template <typename Res>

@@ -61,12 +61,16 @@ concept IsImmOrg = std::derived_from<typename remove_sem_org<T>::type, ImmOrg>;
 /// \brief Map immutable AST type to the sem type, defines inner type
 /// `sem_type`
 template <typename Imm>
-struct imm_to_sem_map {};
+struct imm_to_sem_map {
+    HSTD_BASE_TEMPLATE_CLASS_ERR();
+};
 
 /// \brief Map sem AST type to the immer type, defines inner type
 /// `imm_type`
 template <typename Mut>
-struct sem_to_imm_map {};
+struct sem_to_imm_map {
+    HSTD_BASE_TEMPLATE_CLASS_ERR();
+};
 
 #define _gen_map(__Kind)                                                                 \
     template <>                                                                          \

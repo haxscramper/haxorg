@@ -224,7 +224,9 @@ T const& to_value(imm::ImmAdapterT<T> it) {
 /// \brief Unwrap type `T` and get underlying sem/imm type, define nested
 /// `ast_type` for result.
 template <typename T>
-struct get_ast_type {};
+struct get_ast_type {
+    HSTD_BASE_TEMPLATE_CLASS_ERR();
+};
 
 template <typename T>
 struct get_ast_type<imm::ImmAdapterT<T>> {

@@ -198,6 +198,15 @@ format_validation_results:
     {{HAXORG_ROOT}}/build/logs/ \
     --output={{HAXORG_ROOT}}/build/logs
 
+OUTPUT_LOG_PATH := shell("realpath build/target_result.log")
+OUTPUT_LOG_PATH_HTML := shell("realpath build/target_result.html")
+
+[working-directory(home_directory() + "/defaultdirs/workspace/repos/haxdex")]
+compact_output_results_html:
+  uv run haxdex_read_logs/src/haxdex_read_logs/extract_clang_compile.py \
+    {{OUTPUT_LOG_PATH}} \
+    {{OUTPUT_LOG_PATH_HTML}}
+
 # run individual validation on all packages in the repository, --editable/--no-editable
 validate_all editable: conan_export_external_deps
   #!/usr/bin/env bash
@@ -230,6 +239,7 @@ validate_all editable: conan_export_external_deps
 run_to_output target *ARGS:
   -just {{target}} {{ARGS}} > build/target_result.log 2>&1
   just format_validation_results
+  just compact_output_results_html
   echo "execution OK"
 
 # run target, redirect logs, also trace all subprocess execs
