@@ -1,0 +1,7 @@
+syntax = "proto3";
+
+package ex_shared;
+
+message SharedResource {
+  string label = 1;
+}

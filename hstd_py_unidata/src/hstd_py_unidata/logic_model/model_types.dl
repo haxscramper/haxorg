@@ -1,0 +1,80 @@
+#pragma once
+
+.type ExprId <: number
+.type BinderId <: number
+.type ArgIndex <: number
+.type FieldName <: symbol
+.type CaseTag <: symbol
+.type EnumName <: symbol
+.type OpId <: symbol
+.type RecordKind <: symbol
+.type TypeText <: symbol
+.type DiagCode <: symbol
+.type Flag <: symbol
+
+.type Prim
+    = PInt8 {}
+    | PInt16 {}
+    | PInt32 {}
+    | PInt64 {}
+    | PUInt8 {}
+    | PUInt16 {}
+    | PUInt32 {}
+    | PUInt64 {}
+    | PFloat32 {}
+    | PFloat64 {}
+    | PString {}
+    | PBool {}
+    | PAny {}
+    | PNone {}
+    | PPath {}
+    | PType {}
+
+.type QName = QNameValue { name: symbol, scope: OptQName }
+.type OptQName = NoScope {} | SomeScope { value: QName }
+
+.type Type
+    = TPrim { prim: Prim }
+    | TList { elem: Type }
+    | TArray { elem: Type, size: number }
+    | TMap { key: Type, value: Type }
+    | TOpt { elem: Type }
+    | TTuple { elems: TypeList }
+    | TNamed { qname: QName }
+    | TExternal { package: symbol, qname: QName }
+    | TVariant { owner: QName, field: FieldName }
+    | TDyn { root: Type }
+    | TParam { name: symbol }
+
+.type TypeList = TNil {} | TCons { head: Type, tail: TypeList }
+
+.type TypeClass
+    = CAny {}
+    | CNumeric {}
+    | CInteger {}
+    | CFloat {}
+    | CString {}
+    | CBool {}
+    | COrdered {}
+    | CList {}
+    | CMap {}
+    | COptional {}
+
+// Optional structural subject associated with a diagnostic.
+.type OptType = NoType {} | SomeType { value: Type }
+
+// Diagnostic details retain their semantic category until rendered by a consumer.
+.type DiagnosticDetail
+    = NoDetail {}
+    | TextDetail { value: symbol }
+    | TypeDetail { value: Type }
+    | ClassDetail { value: TypeClass }
+
+// A common envelope lets one pair of serde functors handle every database ADT column.
+.type DbValue
+    = DbType { value: Type }
+    | DbQName { value: QName }
+    | DbPrim { value: Prim }
+    | DbClass { value: TypeClass }
+    | DbDiagnosticDetail { value: DiagnosticDetail }
+    | DbOptionalType { value: OptType }

@@ -1,0 +1,256 @@
+#pragma once
+#include "logic_model/model_dsl.dl"
+
+// Load the compiler-derived schema used by both serde functors.
+.decl serde_schema(schema: symbol)
+.input serde_schema(IO="sqlite", dbname=INPUT_DATABASE)
+
+// Decode the common database envelope into a typed Soufflé value.
+.functor hstd_from_json(schema: symbol, root: symbol, payload: symbol): DbValue stateful
+
+// Encode a typed database envelope using the same compiler-derived schema.
+.functor hstd_to_json(schema: symbol, root: symbol, value: DbValue): symbol stateful
+
+// Register the schema with the stateful serde library.
+.functor hstd_init_souffle_analysis(schema: symbol): symbol stateful
+
+// Record declarations contain JSON-encoded qualified names.
+.decl input_record(qname: symbol, kind: RecordKind)
+.input input_record(IO="sqlite", dbname=INPUT_DATABASE)
+
+// Inheritance edges carry complete qualified names.
+.decl input_inherits(sub: symbol, sup: symbol)
+.input input_inherits(IO="sqlite", dbname=INPUT_DATABASE)
+
+// Fields carry complete structural types rather than type identifiers.
+.decl input_field(qname: symbol, name: FieldName, t: symbol)
+.input input_field(IO="sqlite", dbname=INPUT_DATABASE)
+
+// Variant cases retain their owner, tag and case declaration.
+.decl input_variant_case(owner: symbol, vfield: FieldName, tag: CaseTag, case_qname: symbol)
+.input input_variant_case(IO="sqlite", dbname=INPUT_DATABASE)
+
+// Variant kind enumerations are referenced by qualified name.
+.decl input_variant_kind(owner: symbol, vfield: FieldName, kind_enum: symbol)
+.input input_variant_kind(IO="sqlite", dbname=INPUT_DATABASE)
+
+// Enumeration members belong to a qualified declaration.
+.decl input_enum_value(qname: symbol, name: EnumName)
+.input input_enum_value(IO="sqlite", dbname=INPUT_DATABASE)
+
+// Display names remain available for the existing typed_as relation.
+.decl input_qname_text(qname: symbol, text: symbol)
+.input input_qname_text(IO="sqlite", dbname=INPUT_DATABASE)
+
+// Primitive display names are independent of their ADT constructors.
+.decl input_prim_text(prim: symbol, text: symbol)
+.input input_prim_text(IO="sqlite", dbname=INPUT_DATABASE)
+
+// Primitive class membership is supplied by the operator model.
+.decl input_prim_class(prim: symbol, cls: symbol)
+.input input_prim_class(IO="sqlite", dbname=INPUT_DATABASE)
+
+// Type-class descriptions remain available to existing rules.
+.decl input_class_text(cls: symbol, text: symbol)
+.input input_class_text(IO="sqlite", dbname=INPUT_DATABASE)
+
+// Numeric joins contain primitive ADT values on both sides and in the result.
+.decl input_numeric_join(left: symbol, right: symbol, result: symbol)
+.input input_numeric_join(IO="sqlite", dbname=INPUT_DATABASE)
+
+// Operators in this relation introduce collection-element binders.
+.decl input_op_binds_elem(op: OpId)
+.input input_op_binds_elem(IO="sqlite", dbname=INPUT_DATABASE)
+
+// Operators in this relation require compatible binary operands.
+.decl input_op_binary(op: OpId)
+.input input_op_binary(IO="sqlite", dbname=INPUT_DATABASE)
+
+// Each lowered expression occurrence has its own identity.
+.decl input_expr(e: ExprId, op: OpId)
+.input input_expr(IO="sqlite", dbname=INPUT_DATABASE)
+
+// Expression arities support fixed-result operator validation.
+.decl input_expr_arity(e: ExprId, arity: ArgIndex)
+.input input_expr_arity(IO="sqlite", dbname=INPUT_DATABASE)
+
+// Argument edges preserve positional occurrence identities.
+.decl input_expr_arg(e: ExprId, idx: ArgIndex, arg: ExprId)
+.input input_expr_arg(IO="sqlite", dbname=INPUT_DATABASE)
+
+// String payloads include literal values, field names and variable names.
+.decl input_expr_str(e: ExprId, value: symbol)
+.input input_expr_str(IO="sqlite", dbname=INPUT_DATABASE)
+
+// Integer payloads include literals and tuple indices.
+.decl input_expr_int(e: ExprId, value: number)
+.input input_expr_int(IO="sqlite", dbname=INPUT_DATABASE)
+
+// Explicit type operands are serialized structural ADTs.
+.decl input_expr_type_val(e: ExprId, t: symbol)
+.input input_expr_type_val(IO="sqlite", dbname=INPUT_DATABASE)
+
+// Flags retain operator-specific expression settings.
+.decl input_expr_flag(e: ExprId, flag: Flag)
+.input input_expr_flag(IO="sqlite", dbname=INPUT_DATABASE)
+
+// Binder slots belong to the introducing expression occurrence.
+.decl input_binds(e: ExprId, slot: number, binder: BinderId)
+.input input_binds(IO="sqlite", dbname=INPUT_DATABASE)
+
+// Variable references point to resolved lexical binders.
+.decl input_var_ref(e: ExprId, binder: BinderId)
+.input input_var_ref(IO="sqlite", dbname=INPUT_DATABASE)
+
+// This-expressions receive the structural type of their check context.
+.decl input_this_type(e: ExprId, t: symbol)
+.input input_this_type(IO="sqlite", dbname=INPUT_DATABASE)
+
+// Check roots retain their expected structural result type.
+.decl input_root(e: ExprId, expected: symbol)
+.input input_root(IO="sqlite", dbname=INPUT_DATABASE)
+
+// Argument constraints carry serialized TypeClass values.
+.decl input_expr_arg_class(e: ExprId, idx: ArgIndex, cls: symbol)
+.input input_expr_arg_class(IO="sqlite", dbname=INPUT_DATABASE)
+
+// Fixed-result operators carry their complete result type.
+.decl input_expr_fixed_result(e: ExprId, t: symbol)
+.input input_expr_fixed_result(IO="sqlite", dbname=INPUT_DATABASE)
+
+// Initialize the serde schema once as a relation shared by all conversions.
+.decl db_schema(schema: symbol)
+db_schema(@hstd_init_souffle_analysis(S)) :- serde_schema(S).
+
+// Collect database ADT payloads so repeated values share a single decoding relation.
+.decl db_payload(payload: symbol)
+db_payload(Q) :- input_record(Q, _).
+db_payload(S) :- input_inherits(S, _).
+db_payload(P) :- input_inherits(_, P).
+db_payload(Q) :- input_field(Q, _, _).
+db_payload(T) :- input_field(_, _, T).
+db_payload(O) :- input_variant_case(O, _, _, _).
+db_payload(C) :- input_variant_case(_, _, _, C).
+db_payload(O) :- input_variant_kind(O, _, _).
+db_payload(K) :- input_variant_kind(_, _, K).
+db_payload(Q) :- input_enum_value(Q, _).
+db_payload(Q) :- input_qname_text(Q, _).
+db_payload(P) :- input_prim_text(P, _).
+db_payload(P) :- input_prim_class(P, _).
+db_payload(C) :- input_prim_class(_, C).
+db_payload(C) :- input_class_text(C, _).
+db_payload(L) :- input_numeric_join(L, _, _).
+db_payload(R) :- input_numeric_join(_, R, _).
+db_payload(T) :- input_numeric_join(_, _, T).
+db_payload(T) :- input_expr_type_val(_, T).
+db_payload(T) :- input_this_type(_, T).
+db_payload(T) :- input_root(_, T).
+db_payload(C) :- input_expr_arg_class(_, _, C).
+db_payload(T) :- input_expr_fixed_result(_, T).
+
+// Deserialize every distinct payload using the common DbValue root.
+.decl db_value(payload: symbol, value: DbValue)
+db_value(P, @hstd_from_json(S, "DbValue", P)) :-
+    db_payload(P),
+    db_schema(S).
+
+// Unwrap structural types without introducing a type-shape graph.
+.decl db_type(payload: symbol, value: Type)
+db_type(P, T) :- db_value(P, $DbType(T)).
+
+// Unwrap qualified names with their complete scope chains.
+.decl db_qname(payload: symbol, value: QName)
+db_qname(P, Q) :- db_value(P, $DbQName(Q)).
+
+// Unwrap primitive constructors used by numeric and class rules.
+.decl db_prim(payload: symbol, value: Prim)
+db_prim(P, V) :- db_value(P, $DbPrim(V)).
+
+// Unwrap operator argument classes.
+.decl db_class(payload: symbol, value: TypeClass)
+db_class(P, C) :- db_value(P, $DbClass(C)).
+
+record(Q, K) :- input_record(P, K), db_qname(P, Q).
+inherits(S, P) :-
+    input_inherits(SP, PP),
+    db_qname(SP, S),
+    db_qname(PP, P).
+field(Q, N, T) :-
+    input_field(QP, N, TP),
+    db_qname(QP, Q),
+    db_type(TP, T).
+variant_case(O, F, T, C) :-
+    input_variant_case(OP, F, T, CP),
+    db_qname(OP, O),
+    db_qname(CP, C).
+variant_kind(O, F, K) :-
+    input_variant_kind(OP, F, KP),
+    db_qname(OP, O),
+    db_qname(KP, K).
+enum_value(Q, N) :- input_enum_value(P, N), db_qname(P, Q).
+qname_text(Q, S) :- input_qname_text(P, S), db_qname(P, Q).
+prim_text(P, S) :- input_prim_text(PP, S), db_prim(PP, P).
+prim_class(P, C) :-
+    input_prim_class(PP, CP),
+    db_prim(PP, P),
+    db_class(CP, C).
+class_text(C, S) :- input_class_text(P, S), db_class(P, C).
+numeric_join(L, R, T) :-
+    input_numeric_join(LP, RP, TP),
+    db_prim(LP, L),
+    db_prim(RP, R),
+    db_prim(TP, T).
+
+op_binds_elem(O) :- input_op_binds_elem(O).
+op_binary(O) :- input_op_binary(O).
+expr(E, O) :- input_expr(E, O).
+expr_arity(E, N) :- input_expr_arity(E, N).
+expr_arg(E, I, A) :- input_expr_arg(E, I, A).
+expr_str(E, S) :- input_expr_str(E, S).
+expr_int(E, N) :- input_expr_int(E, N).
+expr_type_val(E, T) :- input_expr_type_val(E, P), db_type(P, T).
+expr_flag(E, F) :- input_expr_flag(E, F).
+binds(E, S, B) :- input_binds(E, S, B).
+var_ref(E, B) :- input_var_ref(E, B).
+this_type(E, T) :- input_this_type(E, P), db_type(P, T).
+root(E, T) :- input_root(E, P), db_type(P, T).
+expr_arg_class(E, I, C) :- input_expr_arg_class(E, I, P), db_class(P, C).
+expr_fixed_result(E, T) :- input_expr_fixed_result(E, P), db_type(P, T).
+
+// Export expression types directly as serde JSON.
+.decl sq_inferred_type(e: ExprId, t: symbol)
+sq_inferred_type(E, @hstd_to_json(S, "DbValue", $DbType(T))) :-
+    inferred_type(E, T),
+    db_schema(S).
+.output sq_inferred_type(IO="sqlite", dbname=OUTPUT_DATABASE)
+
+// Export binder types directly, retaining the introducing expression and slot.
+.decl sq_inferred_binder_type(e: ExprId, slot: number, t: symbol)
+sq_inferred_binder_type(E, I, @hstd_to_json(S, "DbValue", $DbType(T))) :-
+    inferred_binder_type(E, I, T),
+    db_schema(S).
+.output sq_inferred_binder_type(IO="sqlite", dbname=OUTPUT_DATABASE)
+
+// Serialize diagnostic values without formatting any structural type.
+.decl sq_diag(
+    code: DiagCode,
+    e: ExprId,
+    idx: number,
+    detail: symbol,
+    actual: symbol,
+    subject: symbol
+)
+sq_diag(
+    C,
+    E,
+    I,
+    @hstd_to_json(S, "DbValue", $DbDiagnosticDetail(D)),
+    @hstd_to_json(S, "DbValue", $DbType(A)),
+    @hstd_to_json(S, "DbValue", $DbOptionalType(T))
+) :-
+    diag(C, E, I, D, A, T),
+    db_schema(S).
+.output sq_diag(IO="sqlite", dbname=OUTPUT_DATABASE)
+
+// These compatibility outputs also belong exclusively to the SQLite entry point.
+.output untyped(IO="sqlite", dbname=OUTPUT_DATABASE)

@@ -1,0 +1,52 @@
+#pragma once
+#include "logic_model/model_base.dl"
+
+expr_type(E, $TPrim($PBool())) :-
+    expr(E, "list_contains"),
+    coll_elem(E, T),
+    operand(E, 1, T).
+
+expr_type(E, $TPrim($PBool())) :-
+    expr(E, "list_contains"),
+    coll_elem(E, $TPrim(P)),
+    prim_class(P, $CNumeric()),
+    expr_arg(E, 1, X),
+    has_class(X, $CNumeric()).
+
+expr_type(E, T) :-
+    expr(E, "list_at"),
+    coll_elem(E, T),
+    expr_arg(E, 1, X),
+    has_class(X, $CInteger()).
+
+expr_type(E, $TList(T)) :-
+    expr(E, "list_slice"),
+    coll_elem(E, T),
+    expr_arg(E, 1, X),
+    has_class(X, $CInteger()),
+    expr_arg(E, 2, Y),
+    has_class(Y, $CInteger()).
+
+expr_type(E, $TList(T)) :-
+    expr(E, "list_concat"),
+    coll_elem(E, T),
+    expr_arg(E, 1, X),
+    elem_type(X, T).
+
+expr_type(E, T) :-
+    expr(E, Op),
+    (Op = "list_empty" ; Op = "map_empty"),
+    expr_type_val(E, T).
+
+
+expr_type(E, $TList(T)) :-
+    expr(E, "list_init"),
+    expr_arg(E, 1, X),
+    expr_type(X, T).
+
+diag("list-item-mismatch", E, I, $NoDetail(), T1, $SomeType(T2)) :-
+    expr(E, "list_init"),
+    operand(E, 0, T1),
+    operand(E, I, T2),
+    0 < I,
+    T1 != T2.

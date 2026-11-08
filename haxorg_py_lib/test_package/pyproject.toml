@@ -1,0 +1,15 @@
+[build-system]
+requires = ["hatchling>=1.27"]
+build-backend = "hatchling.build"
+
+[project]
+name = "haxorg_py_lib_test_package"
+version = "0.1.0"
+requires-python = ">=3.13,<3.14"
+dependencies = ["haxorg_py_lib==0.1.0"]
+
+[tool.uv.sources]
+haxorg_py_lib = { path = ".." }
+
+[tool.hatch.build.targets.wheel]
+bypass-selection = true

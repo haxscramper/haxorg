@@ -1,0 +1,106 @@
+#pragma once
+
+#include <hstd_cpp_lib/stdlib/Func.hpp>
+#include <hstd_cpp_lib/stdlib/containers/Opt.hpp>
+#include <hstd_cpp_lib/stdlib/containers/Span.hpp>
+#include <hstd_cpp_lib/stdlib/containers/Vec.hpp>
+
+#include <hstd_cpp_lib/system/generator.hpp>
+
+namespace hstd {
+
+/// \brief In-place reverse of the vector content
+template <typename T>
+void reverse(Vec<T>& vec) {
+    std::reverse(vec.begin(), vec.end());
+}
+
+/// \brief In-place sort of the vector content
+template <typename T, typename Cmp>
+void sort(Vec<T>& vec, Cmp cmp) {
+    std::sort(vec.begin(), vec.end(), cmp);
+}
+
+/// \brief Return reversed copy of the vector
+template <typename T>
+Vec<T> reversed(Vec<T> const& vec) {
+    Vec<T> result = vec;
+    reverse(result);
+    return result;
+}
+
+/// \brief Return sorted copy of the vector
+template <typename T, typename Cmp>
+Vec<T> sorted(Vec<T> const& vec, Cmp cmp) {
+    Vec<T> result = vec;
+    sort(result, cmp);
+    return result;
+}
+
+template <typename T, typename F>
+Vec<T> sortedBy(Vec<T> const& vec, F eval) {
+    Vec<T> result = vec;
+    sort<T>(result, [&](T const& lhs, T const& rhs) -> bool {
+        return eval(lhs) < eval(rhs);
+    });
+    return result;
+}
+
+template <typename T>
+Vec<T> sorted(Vec<T> const& vec) {
+    Vec<T> result = vec;
+    sort(result, [](T const& lhs, T const& rhs) { return lhs < rhs; });
+    return result;
+}
+
+
+template <typename T, typename F>
+auto map(Opt<T> const& opt, F cb) -> Opt<decltype(cb(opt.value()))> {
+    if (opt) {
+        return cb(opt.value());
+    } else {
+        return std::nullopt;
+    }
+}
+
+template <typename T, typename F>
+auto map(T const& vec, F cb) {
+    Vec<decltype(cb(vec[0]))> result;
+    for (const auto& it : vec) { result.push_back(cb(it)); }
+    return result;
+}
+
+template <typename T, typename F>
+Vec<Span<T const>> partition(Vec<T> const& elements, Func<F(T const&)> callback) {
+    Vec<Span<T const>> result;
+    if (!elements.empty()) {
+        Span<T const> currentSpan;
+        F             currentValue;
+        T const*      max = &elements.back();
+
+        for (int i = 0; i < elements.size(); ++i) {
+            F newValue = callback(elements[i]);
+            if (currentSpan.empty() || currentValue != newValue) {
+                if (!currentSpan.empty()) { result.push_back(currentSpan); }
+                currentSpan  = elements[slice(i, i)];
+                currentValue = newValue;
+            } else {
+                currentSpan.moveEnd(1, max);
+            }
+        }
+        if (!currentSpan.empty()) { result.push_back(currentSpan); }
+    }
+    return result;
+}
+
+template <typename A, typename B>
+generator<Pair<typename A::value_type const*, typename B::value_type const*>> carthesian(
+    A const& lhs,
+    B const& rhs) {
+    for (const auto& lhsIt : lhs) {
+        for (const auto& rhsIt : rhs) { co_yield {&lhsIt, &rhsIt}; }
+    }
+}
+
+
+} // namespace hstd

@@ -1,0 +1,21 @@
+[build-system]
+requires = ["hatchling>=1.27"]
+build-backend = "hatchling.build"
+
+[project]
+name = "repo-py-validate"
+version = "0.1.0"
+requires-python = ">=3.13,<3.14"
+dependencies = [
+  "hstd_py_lib==0.1.0",
+]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/repo_py_validate"]
+
+[tool.hatch.build.targets.sdist]
+include = [
+  "/src",
+  "/tests",
+  "/pyproject.toml",
+]

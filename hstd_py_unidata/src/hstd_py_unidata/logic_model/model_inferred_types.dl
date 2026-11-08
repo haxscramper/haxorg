@@ -1,0 +1,9 @@
+#pragma once
+
+// Expression results exported structurally by the SQLite entry point.
+.decl inferred_type(e: ExprId, t: Type)
+inferred_type(E, T) :- expr_type(E, T).
+
+// Binder results retain the introducing expression and its binder slot.
+.decl inferred_binder_type(e: ExprId, slot: number, t: Type)
+inferred_binder_type(E, S, T) :- binds(E, S, B), binder_type(B, T).

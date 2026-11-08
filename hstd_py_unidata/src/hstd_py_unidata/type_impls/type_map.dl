@@ -1,0 +1,20 @@
+#pragma once
+#include "logic_model/model_base.dl"
+
+
+.decl map_operand(e: ExprId, k: Type, v: Type)
+map_operand(E, K, V) :- operand(E, 0, $TMap(K, V)).
+
+.decl key_matches(e: ExprId)
+key_matches(E) :- map_operand(E, K, _), operand(E, 1, K).
+key_matches(E) :-
+    map_operand(E, $TPrim(P), _),
+    prim_class(P, $CNumeric()),
+    expr_arg(E, 1, X),
+    has_class(X, $CNumeric()).
+
+expr_type(E, $TPrim($PBool())) :- expr(E, "map_contains"), key_matches(E).
+expr_type(E, V) :- expr(E, "map_get"), key_matches(E), map_operand(E, _, V).
+expr_type(E, $TMap(K, V)) :- expr(E, "map_insert"), key_matches(E), map_operand(E, K, V), operand(E, 2, V).
+expr_type(E, $TList(K)) :- expr(E, "map_keys"), map_operand(E, K, _).
+expr_type(E, $TList(V)) :- expr(E, "map_values"), map_operand(E, _, V).
